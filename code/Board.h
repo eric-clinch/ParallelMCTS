@@ -29,47 +29,24 @@ class Board {
   int width, height;
   char **board;
 
-  static inline int getLookupTableIndex(char **grid);
-  static void getLookupTableHelper(char *lookupTable, char **grid, int x, int y,
-                                   int bot0Neighbors, int bot1Neighbors);
-  static char *getLookupTable();
-
-  virtual inline char charToRepr(char c);
-  virtual inline char reprToChar(char c);
-
-  virtual int getCellIndex(unsigned char cellX, unsigned char cellY);
-  virtual inline char getNextCellStatus(unsigned char cellX,
-                                        unsigned char cellY);
-
-  virtual inline void updateCellStatus(unsigned char row, unsigned char col,
-                                       int cellIndex);
-  virtual inline void updateRegionStatus(unsigned char row, unsigned char col,
-                                         Board &lastRoundBoard);
-
-  virtual inline void deleteBoard();
-  virtual inline void copyBoard(char **blankBoard);
-  virtual inline void copyBoard(Board &blankBoard);
-
  public:
   Board();
   Board(int width, int height);
   ~Board();
-  bool operator==(Board &other);
+  bool operator==(const Board &other) const;
 
-  virtual Board *getCopy();
-  virtual void copyInto(Board &result);
+  virtual Board *getCopy() const;
+  virtual void copyInto(Board &result) const;
 
-  virtual inline bool gameIsOver();
-  virtual inline int getWidth();
-  virtual inline int getHeight();
+  virtual inline bool gameIsOver() const;
+  virtual inline int getWidth() const;
+  virtual inline int getHeight() const;
 
-  virtual bool isLegal(const Move &move, Player playerID);
+  virtual bool isLegal(const Move &move, Player playerID) const;
   virtual void makeMove(const Move &move, Player playerID);
 
-  virtual string toString();
+  virtual string toString() const;
 
-  virtual vector<Coordinate> GetCells(char type);
-  virtual inline char getCoordinateType(Coordinate &c);
   virtual inline char getCoordinateType(int x, int y);
 };
 
