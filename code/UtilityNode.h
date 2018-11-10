@@ -16,7 +16,7 @@ class UtilityNode {
  public:
   float totalUtility;
   const T object;
-  unsigned int16 numTrials;
+  unsigned int numTrials;
 
   UtilityNode() {}
 
