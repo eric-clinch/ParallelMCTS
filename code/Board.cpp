@@ -39,6 +39,20 @@ class Board {
         return blankBoard;
     }
 
+    virtual inline bool gameIsOver() {
+        char init = '-';
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                if (init == '-' && (board[i][j]=='B' || board[i][j]=='W')) {
+                    init = board[i][j];
+                }
+                if (board[i][j] != '-' && board[i][j] != init):
+                    return false;
+            }
+        }
+        return true;
+    }
+
     virtual inline int getWidth() {
         return width;
     }
