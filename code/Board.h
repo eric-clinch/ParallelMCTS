@@ -29,15 +29,9 @@ class Board {
   int width, height;
   char **board;
 
-  static inline int getLookupTableIndex(char **grid);
-  static void getLookupTableHelper(char *lookupTable, char **grid, int x, int y,
-                                   int bot0Neighbors, int bot1Neighbors);
-  static char *getLookupTable();
-
   virtual inline char charToRepr(char c);
   virtual inline char reprToChar(char c);
 
-  virtual int getCellIndex(unsigned char cellX, unsigned char cellY);
   virtual inline char getNextCellStatus(unsigned char cellX,
                                         unsigned char cellY);
 
@@ -47,7 +41,6 @@ class Board {
                                          Board &lastRoundBoard);
 
   virtual inline void deleteBoard();
-  virtual inline void copyBoard(char **blankBoard);
   virtual inline void copyBoard(Board &blankBoard);
 
  public:
