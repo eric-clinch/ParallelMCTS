@@ -15,14 +15,15 @@
 
 #include <assert.h>
 #include <math.h>
-#include <algorithm>
-#include <sstream>
 #include <vector>
-#include "Coordinate.h"
-#include "Enums.h"
 #include "Move.h"
 
 using namespace std;
+
+enum Player {
+    P0 = 1,
+    P1 = 2
+};
 
 class Board {
  private:
@@ -35,7 +36,7 @@ class Board {
   ~Board();
   bool operator==(const Board &other) const;
 
-  virtual Board *getCopy() const;
+  virtual Board getCopy() const;
   virtual void copyInto(Board &result) const;
 
   virtual inline bool gameIsOver() const;
