@@ -31,6 +31,11 @@ Board Board::getCopy() const {
     return result;
 }
 
+void Board::copyInto(Board &result) const {
+    return; // TODO
+}
+
+
 inline bool Board::gameIsOver() const {
     char init = '-';
     for (int i = 0; i < height; i++) {
@@ -52,5 +57,17 @@ inline int Board::getWidth() const {
 
 inline int Board::getHeight() const {
     return height;
+}
+
+bool Board::isLegal(const Move &move, Player playerID) const {
+    return true; // TODO
+}
+
+void Board::makeMove(const Move &move, Player playerID) {
+    return; // TODO
+}
+
+string Board::toString() const {
+    return string(); // TODO
 }
 

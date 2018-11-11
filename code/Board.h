@@ -47,8 +47,6 @@ class Board {
   virtual void makeMove(const Move &move, Player playerID);
 
   virtual string toString() const;
-
-  virtual inline char getCoordinateType(int x, int y);
 };
 
 #endif
