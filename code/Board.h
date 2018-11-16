@@ -7,7 +7,7 @@
 // Replace _NORMAL_BLOCK with _CLIENT_BLOCK if you want the
 // allocations to be of _CLIENT_BLOCK type
 #else
-#define NDEBUG
+// #define NDEBUG
 #endif
 
 #ifndef BOARD_h
@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <math.h>
 #include <vector>
+#include <iostream>
 #include "Move.h"
 
 using namespace std;
@@ -29,7 +30,7 @@ class Board {
  private:
   int width, height;
   char **board;
-
+  int currPlayer;
  public:
   Board();
   Board(int width, int height);
@@ -44,9 +45,11 @@ class Board {
   virtual inline int getHeight() const;
 
   virtual bool isLegal(const Move &move, Player playerID) const;
-  virtual void makeMove(const Move &move, Player playerID);
-
-  virtual string toString() const;
+  virtual int makeMove(const Move &move, Player playerID);
+  virtual bool capture(int i, int j, char stone, char enemyStone, bool *seenGrid);
+  virtual int removeStones(int x, int y, char stone);
+  virtual void toString() const;
+  virtual void update(int i, int j, char stone);
 };
 
 #endif
