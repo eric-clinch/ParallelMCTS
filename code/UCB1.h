@@ -12,13 +12,11 @@ using namespace std;
 
 template <class T>
 class UCB1 : public MAB<T> {
- private:
-  float confidenceConstant;
-
  public:
-  explicit UCB1(float confidenceConstant) {
-    this->confidenceConstant = confidenceConstant;
-  }
+  explicit UCB1(float confidenceConstant)
+      : confidenceConstant(confidenceConstant) {}
+
+  ~UCB1() {}
 
   int getChoice(const vector<UtilityNode<T>> &nodes, int numTrials) {
     float confidenceNumerator = log(numTrials + 1) * confidenceConstant;
@@ -59,6 +57,9 @@ class UCB1 : public MAB<T> {
     stringStream << "UCB1(" << confidenceConstant << ")";
     return stringStream.str();
   }
+
+ private:
+  float confidenceConstant;
 };
 
 #endif
