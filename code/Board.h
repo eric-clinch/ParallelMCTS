@@ -20,10 +20,7 @@
 
 using namespace std;
 
-enum Player {
-    P0 = 1,
-    P1 = 2
-};
+enum Player { P0 = 1, P1 = 2 };
 
 class Board {
  private:
@@ -44,6 +41,7 @@ class Board {
   virtual inline int getHeight() const;
 
   virtual bool isLegal(const Move &move, Player playerID) const;
+  virtual std::vector<Move> getMoves() const;
   virtual void makeMove(const Move &move, Player playerID);
 
   virtual string toString() const;

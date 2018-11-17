@@ -3,8 +3,8 @@
 
 #include <assert.h>
 #include <math.h>
-#include <string>
 #include <sstream>
+#include <string>
 #include <vector>
 #include "MAB.h"
 
@@ -21,7 +21,7 @@ class UCB1 : public MAB<T> {
   }
 
   int getChoice(const vector<UtilityNode<T>> &nodes, int numTrials) {
-    float confidenceNumerator = log(numTrials) * confidenceConstant;
+    float confidenceNumerator = log(numTrials + 1) * confidenceConstant;
     assert(nodes.size() > 0);
     int bestNodeIndex = 0;
     float bestScore = nodes[0].getAverageUtility() +
