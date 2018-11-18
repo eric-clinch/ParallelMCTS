@@ -105,7 +105,6 @@ int Board::makeMove(const Move &move, Player playerID) {
 
 // check if current location is in an enclosed mass
 bool Board::capture(int i, int j, char stone, char enemyStone, bool *seenGrid) {
-    // std::cout << i << j << std::endl;
     if (seenGrid[i*width + j]) 
         return true;
     seenGrid[i*width + j] = true;
@@ -138,7 +137,6 @@ int Board::removeStones(int x, int y, char stone) {
     int new_count = 1;
     if (x-1 >= 0) new_count+=removeStones(x - 1, y, stone);
     if (x+1 < height) new_count+=removeStones(x + 1, y, stone);
-    std::cout << new_count << std::endl;
     if (y-1 >= 0) new_count+=removeStones(x, y - 1, stone);
     if (y+1 < width) new_count+=removeStones(x, y + 1, stone);
     return new_count;
