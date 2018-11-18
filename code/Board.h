@@ -21,7 +21,7 @@
 
 using namespace std;
 
-enum Player { P0 = 1, P1 = 2 };
+enum Player { P0 = 0, P1 = 1 };
 
 class Board {
  private:
@@ -38,7 +38,9 @@ class Board {
   virtual Board getCopy() const;
   virtual void copyInto(Board &result) const;
 
-  virtual inline bool gameIsOver() const;
+  virtual bool gameIsOver() const;
+  virtual unsigned int stoneCount(char stone) const;
+
   virtual inline int getWidth() const;
   virtual inline int getHeight() const;
 
@@ -49,6 +51,7 @@ class Board {
   virtual bool capture(int i, int j, char stone, char enemyStone,
                        bool *seenGrid);
   virtual int removeStones(int x, int y, char stone);
+
   virtual std::string toString() const;
   virtual void update(int i, int j, char stone);
 };

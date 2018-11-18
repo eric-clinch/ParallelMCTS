@@ -21,7 +21,7 @@ class UtilityNode {
   UtilityNode() {}
 
   explicit UtilityNode(const T &object)
-      : object(object), numTrials(0), totalUtility(0.) {}
+      :  totalUtility(0.), object(object), numTrials(0)  {}
 
   float getAverageUtility() const {
     if (numTrials == 0) {

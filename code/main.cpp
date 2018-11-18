@@ -1,5 +1,8 @@
 #include <iostream>
 #include "Board.h"
+#include "Strategy.h"
+#include "MCTS.h"
+#include "Game.h"
 // #include <assert.h>
 
 void zeroFill(bool* seen, int length) {
@@ -7,7 +10,7 @@ void zeroFill(bool* seen, int length) {
 }
 
 Board* test0() {
-  Board* board = new Board();
+  Board* board = new Board(19, 19);
   board->update(0, 1, 'W');
   board->update(1, 1, 'B');
   board->update(2, 1, 'W');
@@ -186,6 +189,13 @@ int main() {
   answer = board7->capture(7, 6, 'W', 'B', seen);
   assert(answer == true);
   assert(11 == board7->removeStones(7, 6, 'W'));
+
+  Strategy* S0 = new MCTS();
+  Strategy* S1 = new MCTS();
+
+  Game* G = new Game(S0, S1, 1);
+  int s0_wins = G->runGame();
+  std::cout << "S0 won " << s0_wins << std::endl;
   std::cout << answer << std::endl;
   return 0;
 }

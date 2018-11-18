@@ -14,7 +14,7 @@ const Move MCTS::getMove(Board &board, Player playerID, Player enemyID) {
 
   TreeNode root(board, playerID, enemyID);
 
-  for (int i = 0; i < iterations; i++) {
+  for (size_t i = 0; i < iterations; i++) {
     Board boardCopy = board.getCopy();
     MCTSIteration(boardCopy, playerID, enemyID, root);
   }

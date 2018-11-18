@@ -5,8 +5,12 @@
 #include "Move.h"
 
 class Strategy {
- public:
-  virtual const Move getMove(Board &board, Player playerID, Player enemyID) = 0;
+  public:
+    virtual const Move getMove(Board &board, Player playerID, Player enemyID) {
+      vector<Move> allMoves = board.getMoves();
+      return allMoves[0];
+    }
+
   virtual string toString() { return "Strategy"; }
 };
 

@@ -57,7 +57,6 @@ inline bool Board::gameIsOver() const {
       }
     }
   }
-
   return true;
 }
 
@@ -162,6 +161,17 @@ int Board::removeStones(int row, int col, char stone) {
   if (col - 1 >= 0) new_count += removeStones(row, col - 1, stone);
   if (col + 1 < width) new_count += removeStones(row, col + 1, stone);
   return new_count;
+}
+
+unsigned int Board::stoneCount(char stone) const {
+    unsigned int count = 0;
+    for (int r = 0; r < height; r++) {
+        for (int c = 0; c < width; c++) {
+            if (board[r][c] == stone)
+                count++;
+        }
+    }
+    return count;
 }
 
 void Board::update(int row, int col, char stone) { board[row][col] = stone; }
