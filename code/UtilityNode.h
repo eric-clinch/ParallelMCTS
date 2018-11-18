@@ -20,13 +20,10 @@ class UtilityNode {
 
   UtilityNode() {}
 
-  explicit UtilityNode(const T &object) {
-    this->object = object;
-    this->numTrials = 0;
-    this->totalUtility = 0;
-  }
+  explicit UtilityNode(const T &object)
+      : object(object), numTrials(0), totalUtility(0.) {}
 
-  float getAverageUtility() {
+  float getAverageUtility() const {
     if (numTrials == 0) {
       return numeric_limits<float>::infinity();
     }

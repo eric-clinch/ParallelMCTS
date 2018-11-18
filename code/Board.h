@@ -15,22 +15,20 @@
 
 #include <assert.h>
 #include <math.h>
-#include <vector>
 #include <iostream>
+#include <vector>
 #include "Move.h"
 
 using namespace std;
 
-enum Player {
-    P0 = 1,
-    P1 = 2
-};
+enum Player { P0 = 1, P1 = 2 };
 
 class Board {
  private:
   int width, height;
   char **board;
   int currPlayer;
+
  public:
   Board();
   Board(int width, int height);
@@ -45,10 +43,13 @@ class Board {
   virtual inline int getHeight() const;
 
   virtual bool isLegal(const Move &move, Player playerID) const;
+
+  virtual std::vector<Move> getMoves() const;
   virtual int makeMove(const Move &move, Player playerID);
-  virtual bool capture(int i, int j, char stone, char enemyStone, bool *seenGrid);
+  virtual bool capture(int i, int j, char stone, char enemyStone,
+                       bool *seenGrid);
   virtual int removeStones(int x, int y, char stone);
-  virtual void toString() const;
+  virtual std::string toString() const;
   virtual void update(int i, int j, char stone);
 };
 

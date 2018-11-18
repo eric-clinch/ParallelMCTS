@@ -1,32 +1,30 @@
 #ifndef MOVE_h
 #define MOVE_h
 
-#include <string>
 #include <assert.h>
+#include <string>
 class Move {
  private:
-    char x;
-    char y;
+  char row;
+  char col;
 
  public:
-    Move() {
-        x = 0;
-        y = 0;
-    }
+  Move() {
+    row = 0;
+    col = 0;
+  }
 
-    Move(char new_x, char new_y) {
-        assert(new_x < 20 && new_y < 20);
-        x = new_x;
-        y = new_y;
-    }
-    virtual char getX() const {
-        return x;
-    }
-    virtual char getY() const {
-        return y;
-    }
-    virtual std::string toString() const;
-    virtual bool operator==(const Move &other) const;
+  Move(char row, char col) : row(row), col(col) {}
+
+  int getRow() const { return row; }
+
+  int getCol() const { return col; }
+
+  std::string toString() const;
+
+  bool operator==(const Move &other) const {
+    return this->row == other.row && this->col == other.col;
+  }
 };
 
 #endif

@@ -3,8 +3,8 @@
 
 #include <assert.h>
 #include <math.h>
-#include <string>
 #include <sstream>
+#include <string>
 #include <vector>
 #include "MAB.h"
 
@@ -12,16 +12,14 @@ using namespace std;
 
 template <class T>
 class UCB1 : public MAB<T> {
- private:
-  float confidenceConstant;
-
  public:
-  explicit UCB1(float confidenceConstant) {
-    this->confidenceConstant = confidenceConstant;
-  }
+  explicit UCB1(float confidenceConstant)
+      : confidenceConstant(confidenceConstant) {}
+
+  ~UCB1() {}
 
   int getChoice(const vector<UtilityNode<T>> &nodes, int numTrials) {
-    float confidenceNumerator = log(numTrials) * confidenceConstant;
+    float confidenceNumerator = log(numTrials + 1) * confidenceConstant;
     assert(nodes.size() > 0);
     int bestNodeIndex = 0;
     float bestScore = nodes[0].getAverageUtility() +
@@ -59,6 +57,9 @@ class UCB1 : public MAB<T> {
     stringStream << "UCB1(" << confidenceConstant << ")";
     return stringStream.str();
   }
+
+ private:
+  float confidenceConstant;
 };
 
 #endif

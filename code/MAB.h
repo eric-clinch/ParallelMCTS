@@ -8,6 +8,8 @@
 template <class T>
 class MAB {
  public:
+  virtual ~MAB() {}
+
   // returns the index of the chosen element
   virtual int getChoice(const vector<UtilityNode<T>> &nodes, int numTrials) = 0;
   virtual int getChoice(const vector<UtilityNode<T> *> &nodes,

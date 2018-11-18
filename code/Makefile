@@ -1,6 +1,6 @@
 APP_NAME=mcts
 
-SRCS= Board.cpp main.cpp
+SRCS= Board.cpp MCTS.cpp main.cpp
 OBJS=$(subst .cpp,.o,$(SRCS))
 
 default: $(APP_NAME)
