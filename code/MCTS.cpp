@@ -1,21 +1,20 @@
 #include "MCTS.h"
+#include <assert.h>
+#include <iostream>
 #include "UCB1.h"
 
-MCTS::MCTS() : mab(new UCB1<Move>(2.0)) {
-  std::random_device rd;
-  std::mt19937 rng(rd());
-  std::uniform_real_distribution<> uni(0, 1);
-}
+MCTS::MCTS() : mab(new UCB1<Move>(2.0)), rd(), rng(rd()), uni(0, 1) {}
 
 MCTS::~MCTS() { delete mab; }
 
 const Move MCTS::getMove(Board &board, Player playerID, Player enemyID) {
-  size_t iterations = 1000;
+  size_t iterations = 10000;
 
   TreeNode root(board, playerID, enemyID);
 
+  Board boardCopy(board.getWidth(), board.getHeight());
   for (size_t i = 0; i < iterations; i++) {
-    Board boardCopy = board.getCopy();
+    board.copyInto(boardCopy);
     MCTSIteration(boardCopy, playerID, enemyID, root);
   }
 
@@ -29,18 +28,23 @@ float MCTS::MCTSIteration(Board &board, Player playerID, Player enemyID,
     return playout(board, playerID, enemyID);
   }
 
-  std::pair<int, TreeNode &> moveIndex_newNode =
-      node.getAndMakeMove(*mab, board);
-  int moveIndex = moveIndex_newNode.first;
-  TreeNode &newNode = moveIndex_newNode.second;
+  int moveIndex;
+  TreeNode *child;
+  bool childIsLeaf;
+  std::tie(moveIndex, child, childIsLeaf) = node.getAndMakeMove(*mab, board);
 
-  int result = 1. - MCTSIteration(board, enemyID, playerID, newNode);
+  float result;
+  if (childIsLeaf) {
+    result = playout(board, playerID, enemyID);
+  } else {
+    result = 1. - MCTSIteration(board, enemyID, playerID, *child);
+  }
   node.updateUtility(moveIndex, result);
 
   return result;
 }
 
-const Move MCTS::sampleMove(std::vector<Move> moves) {
+const Move MCTS::sampleMove(std::vector<Move> &moves) {
   assert(moves.size() > 0);
   double sample = uni(rng);
   int resultIndex = static_cast<int>(sample * moves.size());
@@ -50,12 +54,15 @@ const Move MCTS::sampleMove(std::vector<Move> moves) {
 float MCTS::playout(Board &board, Player playerID, Player enemyID) {
   Player currentPlayer = playerID;
   while (!board.gameIsOver()) {
-    const Move randomMove = sampleMove(board.getMoves());
+    std::vector<Move> moves(board.getMoves());
+    if (moves.size() == 0) {
+      break;
+    }
+    const Move randomMove = sampleMove(moves);
     board.makeMove(randomMove, currentPlayer);
 
     currentPlayer = currentPlayer == playerID ? enemyID : playerID;
   }
 
-  return 1.0;  // TODO: return the appropriate value after board.won() is
-               // written
+  return board.playerScore(playerID) > board.playerScore(enemyID) ? 1. : 0.;
 }

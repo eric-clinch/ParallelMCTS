@@ -19,12 +19,15 @@ class UCB1 : public MAB<T> {
   ~UCB1() {}
 
   int getChoice(const vector<UtilityNode<T>> &nodes, int numTrials) {
-    float confidenceNumerator = log(numTrials + 1) * confidenceConstant;
     assert(nodes.size() > 0);
+    float confidenceNumerator = log(numTrials + 1) * confidenceConstant;
+
+    if (nodes[0].numTrials == 0) return 0;
     int bestNodeIndex = 0;
     float bestScore = nodes[0].getAverageUtility() +
                       sqrt(confidenceNumerator / nodes[0].numTrials);
     for (int i = 1; i < nodes.size(); i++) {
+      if (nodes[i].numTrials == 0) return i;
       float nodeScore = nodes[i].getAverageUtility() +
                         sqrt(confidenceNumerator / nodes[i].numTrials);
       if (nodeScore > bestScore) {

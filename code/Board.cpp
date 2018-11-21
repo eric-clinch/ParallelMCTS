@@ -9,9 +9,12 @@ using namespace std;
 Board::Board() {
   width = 19;
   height = 19;
-  board = (char **)malloc(height * sizeof(char *));
+  board = new char *[height];
   for (int i = 0; i < height; i++) {
-    board[i] = (char *)malloc(width * sizeof(char));
+    board[i] = new char[width];
+    for (int j = 0; j < width; j++) {
+      board[i][j] = '-';
+    }
   }
   currPlayer = 0;
 }
@@ -19,18 +22,21 @@ Board::Board() {
 Board::Board(int w, int h) {
   width = w;
   height = h;
-  board = (char **)malloc(height * sizeof(char *));
+  board = new char *[height];
   for (int i = 0; i < height; i++) {
-    board[i] = (char *)malloc(width * sizeof(char));
+    board[i] = new char[width];
+    for (int j = 0; j < width; j++) {
+      board[i][j] = '-';
+    }
   }
   currPlayer = 0;
 }
 
 Board::~Board() {
   for (int row = 0; row < height; row++) {
-    free(board[row]);
+    delete[] board[row];
   }
-  free(board);
+  delete[] board;
 }
 
 Board Board::getCopy() const {
@@ -42,7 +48,9 @@ Board Board::getCopy() const {
 }
 
 void Board::copyInto(Board &result) const {
-  return;  // TODO
+  for (int i = 0; i < height; i++) {
+    std::memcpy(&result.board[i][0], &board[i][0], width * sizeof(char));
+  }
 }
 
 inline bool Board::gameIsOver() const {
@@ -87,7 +95,7 @@ std::vector<Move> Board::getMoves() const {
 int Board::makeMove(const Move &move, Player playerID) {
   char stone = '-';
   char enemyStone = '-';
-  if (playerID == 0) {
+  if (playerID == P0) {
     stone = 'W';
     enemyStone = 'B';
   } else {
@@ -157,21 +165,24 @@ int Board::removeStones(int row, int col, char stone) {
   int new_count = 1;
   if (row - 1 >= 0) new_count += removeStones(row - 1, col, stone);
   if (row + 1 < height) new_count += removeStones(row + 1, col, stone);
-  std::cout << new_count << std::endl;
   if (col - 1 >= 0) new_count += removeStones(row, col - 1, stone);
   if (col + 1 < width) new_count += removeStones(row, col + 1, stone);
   return new_count;
 }
 
+unsigned int Board::playerScore(Player playerID) const {
+  char playerStone = playerID == P0 ? 'W' : 'B';
+  return stoneCount(playerStone);
+}
+
 unsigned int Board::stoneCount(char stone) const {
-    unsigned int count = 0;
-    for (int r = 0; r < height; r++) {
-        for (int c = 0; c < width; c++) {
-            if (board[r][c] == stone)
-                count++;
-        }
+  unsigned int count = 0;
+  for (int r = 0; r < height; r++) {
+    for (int c = 0; c < width; c++) {
+      if (board[r][c] == stone) count++;
     }
-    return count;
+  }
+  return count;
 }
 
 void Board::update(int row, int col, char stone) { board[row][col] = stone; }

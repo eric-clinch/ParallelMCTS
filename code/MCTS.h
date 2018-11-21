@@ -12,19 +12,20 @@ class MCTS : public Strategy {
  public:
   MCTS();
   ~MCTS();
-  const Move getMove(Board &board, Player playerID, Player enemyID);
+  virtual const Move getMove(Board &board, Player playerID, Player enemyID);
 
  private:
   // perform one iteration of the MCTS algorithm starting from the given node
   float MCTSIteration(Board &board, Player playerID, Player enemyID,
                       TreeNode &node);
 
-  const Move sampleMove(std::vector<Move> moves);
+  const Move sampleMove(std::vector<Move> &moves);
   float playout(Board &board, Player playerID, Player enemyID);
 
  private:
   MAB<Move> *mab;
 
+  std::random_device rd;
   std::mt19937 rng;
   std::uniform_real_distribution<> uni;
 };

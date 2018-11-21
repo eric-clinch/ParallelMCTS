@@ -1,7 +1,3 @@
-#ifndef _DEBUG
-#define NDEBUG
-#endif
-
 #ifndef UTILITYNODE_h
 #define UTILITYNODE_h
 
@@ -21,7 +17,7 @@ class UtilityNode {
   UtilityNode() {}
 
   explicit UtilityNode(const T &object)
-      :  totalUtility(0.), object(object), numTrials(0)  {}
+      : totalUtility(0.), object(object), numTrials(0) {}
 
   float getAverageUtility() const {
     if (numTrials == 0) {
