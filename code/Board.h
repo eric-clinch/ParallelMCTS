@@ -44,11 +44,18 @@ class Board {
 
  private:
   virtual unsigned int stoneCount(char stone) const;
+  bool isValid() const;
 
  private:
   int width, height;
   char **board;
-  int currPlayer;
+
+  size_t P0Stones;
+  size_t P1Stones;
+
+  static char P0STONE;
+  static char P1STONE;
+  static char BLANK;
 };
 
 #endif

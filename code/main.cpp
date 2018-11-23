@@ -4,6 +4,7 @@
 #include "Board.h"
 #include "Game.h"
 #include "MCTS.h"
+#include "Move.h"
 #include "Strategy.h"
 
 void zeroFill(bool* seen, int length) {
@@ -104,7 +105,6 @@ Board test6() {
   board.update(0, 2, 'W');
   board.update(1, 0, 'B');
   board.update(1, 2, 'B');
-  board.update(1, 2, 'B');
   board.update(0, 3, 'B');
   return board;
 }
@@ -147,9 +147,16 @@ Board test7() {
 int main() {
   bool* seen = new bool[19 * 19];
   zeroFill(seen, 19 * 19);
+
   Board board0 = test0();
   bool answer = board0.capture(1, 1, 'B', 'W', seen);
   assert(answer == false);
+
+  std::cout << board0.toString();
+  Move move(1, 2);
+  board0.makeMove(move, P0);
+  std::cout << board0.toString();
+  std::cout << "The B piece wasn't captured :(\n\n";
 
   zeroFill(seen, 19 * 19);
   Board board1 = test1();
@@ -180,11 +187,18 @@ int main() {
 
   zeroFill(seen, 19 * 19);
   Board board6 = test6();
+  std::cout
+      << "------------------------------------------------------------\n\n";
+  std::cout << "none of these pieces should be captured, but your code says "
+               "that the piece at (1, 0) is captured\n";
+
+  std::cout << board6.toString();
   answer = board6.capture(1, 0, 'W', 'B', seen);
   assert(answer == true);
   assert(4 == board6.removeStones(0, 1, 'W'));
   zeroFill(seen, 19 * 19);
 
+  zeroFill(seen, 19 * 19);
   Board board7 = test7();
   answer = board7.capture(7, 6, 'W', 'B', seen);
   assert(answer == true);
@@ -192,15 +206,15 @@ int main() {
 
   delete[] seen;
 
-  Strategy* S0 = new MCTS();
-  Strategy* S1 = new MCTS();
+  // Strategy* S0 = new MCTS();
+  // Strategy* S1 = new MCTS();
 
-  Game* G = new Game(S0, S1, 1);
-  int s0_wins = G->runGame();
-  std::cout << "S0 won " << s0_wins << std::endl;
+  // Game* G = new Game(S0, S1, 1);
+  // int s0_wins = G->runGame();
+  // std::cout << "S0 won " << s0_wins << std::endl;
 
-  delete S0;
-  delete S1;
+  // delete S0;
+  // delete S1;
 
   return 0;
 }

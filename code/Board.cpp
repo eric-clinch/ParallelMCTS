@@ -4,7 +4,9 @@
 #include <sstream>
 #include <string>
 
-using namespace std;
+char Board::P0STONE = 'W';
+char Board::P1STONE = 'B';
+char Board::BLANK = '-';
 
 Board::Board() {
   width = 19;
@@ -13,10 +15,12 @@ Board::Board() {
   for (int i = 0; i < height; i++) {
     board[i] = new char[width];
     for (int j = 0; j < width; j++) {
-      board[i][j] = '-';
+      board[i][j] = BLANK;
     }
   }
-  currPlayer = 0;
+
+  P0Stones = 0;
+  P1Stones = 0;
 }
 
 Board::Board(int w, int h) {
@@ -26,10 +30,12 @@ Board::Board(int w, int h) {
   for (int i = 0; i < height; i++) {
     board[i] = new char[width];
     for (int j = 0; j < width; j++) {
-      board[i][j] = '-';
+      board[i][j] = BLANK;
     }
   }
-  currPlayer = 0;
+
+  P0Stones = 0;
+  P1Stones = 0;
 }
 
 Board::~Board() {
@@ -42,8 +48,12 @@ Board::~Board() {
 Board Board::getCopy() const {
   Board result(width, height);
   for (int i = 0; i < height; i++) {
-    std::memcpy(&result.board[i], &board[i], width * sizeof(char));
+    std::memcpy(&result.board[i][0], &board[i][0], width * sizeof(char));
   }
+
+  result.P0Stones = P0Stones;
+  result.P1Stones = P1Stones;
+
   return result;
 }
 
@@ -51,16 +61,19 @@ void Board::copyInto(Board &result) const {
   for (int i = 0; i < height; i++) {
     std::memcpy(&result.board[i][0], &board[i][0], width * sizeof(char));
   }
+
+  result.P0Stones = P0Stones;
+  result.P1Stones = P1Stones;
 }
 
 inline bool Board::gameIsOver() const {
-  char init = '-';
+  char init = BLANK;
   for (int i = 0; i < height; i++) {
     for (int j = 0; j < width; j++) {
-      if (init == '-' && board[i][j] != '-') {
+      if (init == BLANK && board[i][j] != BLANK) {
         init = board[i][j];
       }
-      if (init != '-' && board[i][j] != '-' && board[i][j] != init) {
+      if (init != BLANK && board[i][j] != BLANK && board[i][j] != init) {
         return false;
       }
     }
@@ -75,7 +88,7 @@ inline int Board::getHeight() const { return height; }
 bool Board::isLegal(const Move &move, Player playerID) const {
   int row = move.getRow();
   int col = move.getCol();
-  if (board[row][col] != '-') return false;
+  if (board[row][col] != BLANK) return false;
   return true;
 }
 
@@ -83,7 +96,7 @@ std::vector<Move> Board::getMoves() const {
   std::vector<Move> result;
   for (int row = 0; row < height; row++) {
     for (int col = 0; col < width; col++) {
-      if (board[row][col] == '-') {
+      if (board[row][col] == BLANK) {
         result.push_back(Move(row, col));
       }
     }
@@ -93,14 +106,14 @@ std::vector<Move> Board::getMoves() const {
 }
 
 int Board::makeMove(const Move &move, Player playerID) {
-  char stone = '-';
-  char enemyStone = '-';
+  char stone;
+  char enemyStone;
   if (playerID == P0) {
-    stone = 'W';
-    enemyStone = 'B';
+    stone = P0STONE;
+    enemyStone = P1STONE;
   } else {
-    stone = 'B';
-    enemyStone = 'W';
+    stone = P1STONE;
+    enemyStone = P0STONE;
   }
 
   int row = move.getRow();
@@ -118,7 +131,6 @@ int Board::makeMove(const Move &move, Player playerID) {
   if (capture(row, col, stone, enemyStone, seenGrid)) {
     points = removeStones(row, col, stone);
   }
-  currPlayer = !playerID;
 
   free(seenGrid);
   return points;
@@ -129,7 +141,7 @@ bool Board::capture(int row, int col, char stone, char enemyStone,
                     bool *seenGrid) {
   if (seenGrid[row * width + col]) return true;
   seenGrid[row * width + col] = true;
-  if (board[row][col] != 'W' && board[row][col] != 'B') {
+  if (board[row][col] != P0STONE && board[row][col] != P1STONE) {
     return false;
   } else if (board[row][col] == enemyStone) {
     return true;
@@ -161,7 +173,7 @@ bool Board::capture(int row, int col, char stone, char enemyStone,
 // if current location is currently surrounded, remove all stones inside circle
 int Board::removeStones(int row, int col, char stone) {
   if (board[row][col] != stone) return 0;
-  board[row][col] = '-';
+  board[row][col] = BLANK;
   int new_count = 1;
   if (row - 1 >= 0) new_count += removeStones(row - 1, col, stone);
   if (row + 1 < height) new_count += removeStones(row + 1, col, stone);
@@ -171,7 +183,7 @@ int Board::removeStones(int row, int col, char stone) {
 }
 
 unsigned int Board::playerScore(Player playerID) const {
-  char playerStone = playerID == P0 ? 'W' : 'B';
+  char playerStone = playerID == P0 ? P0STONE : P1STONE;
   return stoneCount(playerStone);
 }
 
@@ -185,7 +197,14 @@ unsigned int Board::stoneCount(char stone) const {
   return count;
 }
 
-void Board::update(int row, int col, char stone) { board[row][col] = stone; }
+void Board::update(int row, int col, char stone) {
+  board[row][col] = stone;
+  if (stone == P0STONE) {
+    P0Stones++;
+  } else if (stone == P1STONE) {
+    P1Stones++;
+  }
+}
 
 std::string Board::toString() const {
   ostringstream stringStream;
@@ -197,4 +216,21 @@ std::string Board::toString() const {
   }
   stringStream << "\n";
   return stringStream.str();
+}
+
+bool Board::isValid() const {
+  size_t P0StoneCount = 0;
+  size_t P1StoneCount = 0;
+
+  for (int row = 0; row < height; row++) {
+    for (int col = 0; col < width; col++) {
+      if (board[row][col] == P0STONE) {
+        P0StoneCount++;
+      } else if (board[row][col] == P1STONE) {
+        P1StoneCount++;
+      }
+    }
+  }
+
+  return P0StoneCount == P0Stones && P1StoneCount == P1Stones;
 }
