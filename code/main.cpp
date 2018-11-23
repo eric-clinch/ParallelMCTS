@@ -206,15 +206,15 @@ int main() {
 
   delete[] seen;
 
-  // Strategy* S0 = new MCTS();
-  // Strategy* S1 = new MCTS();
+  Strategy* S0 = new MCTS(20000, 2);
+  Strategy* S1 = new MCTS(20000, 2);
 
-  // Game* G = new Game(S0, S1, 1);
-  // int s0_wins = G->runGame();
-  // std::cout << "S0 won " << s0_wins << std::endl;
+  Game* G = new Game(S0, S1, 1);
+  int s0_wins = G->runGame();
+  std::cout << "S0 won " << s0_wins << std::endl;
 
-  // delete S0;
-  // delete S1;
+  delete S0;
+  delete S1;
 
   return 0;
 }
