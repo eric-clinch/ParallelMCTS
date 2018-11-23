@@ -207,5 +207,18 @@ int main() {
   assert(11 == board7.removeStones(7, 6, 'W'));
   delete[] seen;
 
+<<<<<<< e3998b8e8a8fc3ffaf6ab3589b3bed5ffcf16b55
+=======
+  Strategy* S0 = new MCTS(20000, 2);
+  Strategy* S1 = new MCTS(20000, 2);
+
+  Game* G = new Game(S0, S1, 1);
+  int s0_wins = G->runGame();
+  std::cout << "S0 won " << s0_wins << std::endl;
+
+  delete S0;
+  delete S1;
+
+>>>>>>> first implementation of playout parallelism
   return 0;
 }

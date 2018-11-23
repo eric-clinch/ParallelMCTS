@@ -8,9 +8,15 @@
 #include "Strategy.h"
 #include "TreeNode.h"
 
+struct playoutJob {
+  Board *board;
+  Player playerID;
+  Player enemyID;
+};
+
 class MCTS : public Strategy {
  public:
-  MCTS();
+  MCTS(int64_t msPerMove, unsigned int playoutThreads);
   ~MCTS();
   virtual const Move getMove(Board &board, Player playerID, Player enemyID);
 
@@ -19,15 +25,20 @@ class MCTS : public Strategy {
   float MCTSIteration(Board &board, Player playerID, Player enemyID,
                       TreeNode &node);
 
-  const Move sampleMove(std::vector<Move> &moves);
-  float playout(Board &board, Player playerID, Player enemyID);
+  float performPlayouts(Board &board, Player playerID, Player enemyID);
+  static int playout(Board *board, Player playerID, Player enemyID);
+  static void *parallelPlayout(void *arg);
+  static const Move sampleMove(std::vector<Move> &moves);
 
  private:
+  int64_t msPerMove;
+  unsigned int playoutThreads;
+
   MAB<Move> *mab;
 
-  std::random_device rd;
-  std::mt19937 rng;
-  std::uniform_real_distribution<> uni;
+  static std::random_device rd;
+  static std::mt19937 rng;
+  static std::uniform_real_distribution<> uni;
 };
 
 #endif  // MCTS_H__

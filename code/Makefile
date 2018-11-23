@@ -5,7 +5,7 @@ OBJS=$(subst .cpp,.o,$(SRCS))
 
 default: $(APP_NAME)
 
-CXX = g++ -m64 -std=c++11
+CXX = g++ -m64 -std=c++11 -pthread
 CXXFLAGS = -I. -O3 -Wall -Wno-unknown-pragmas
 
 # Compilation Rules
