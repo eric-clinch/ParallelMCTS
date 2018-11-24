@@ -147,7 +147,10 @@ int MCTS::playout(Board *originalBoard, Player playerID, Player enemyID) {
   Board board = originalBoard->getCopy();
 
   Player currentPlayer = playerID;
-  while (!board.gameIsOver()) {
+
+  size_t iters = 0;
+  while (!board.gameIsOver() && iters < 300) {
+    iters++;
     std::vector<Move> moves(board.getMoves());
     if (moves.size() == 0) {
       break;

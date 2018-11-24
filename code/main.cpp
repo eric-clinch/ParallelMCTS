@@ -43,7 +43,7 @@ Board test0() {
   Board board(19, 19);
   board.update(0, 1, 'W');
   board.update(1, 1, 'B');
-  board.update(2, 1, 'W');
+  // board.update(2, 1, 'W');
   board.update(1, 0, 'W');
   return board;
 }
@@ -187,9 +187,10 @@ int main(int argc, const char* argv[]) {
   assert(answer == false);
 
   std::cout << board0.toString();
-  Move move(1, 2);
+  Move move(2, 1);
   board0.makeMove(move, P0);
   std::cout << board0.toString();
+  std::cout << "The black stone shouldn't have been captured\n";
 
   zeroFill(seen, 19 * 19);
   Board board1 = test1();
@@ -220,12 +221,6 @@ int main(int argc, const char* argv[]) {
 
   zeroFill(seen, 19 * 19);
   Board board6 = test6();
-  // std::cout
-  // << "------------------------------------------------------------\n\n";
-  // std::cout << "none of these pieces should be captured, but your code says "
-  //           "that the piece at (1, 0) is captured\n";
-
-  // std::cout << board6.toString();
   answer = board6.capture(0, 0, 'W', 'B', seen);
   assert(answer == false);
   zeroFill(seen, 19 * 19);
@@ -244,9 +239,9 @@ int main(int argc, const char* argv[]) {
   Strategy* S0 = new MCTS(secondsPerMove, threads);
   Strategy* S1 = new MCTS(secondsPerMove, threads);
 
-  Game* G = new Game(S0, S1, 1);
-  int s0_wins = G->runGame();
-  std::cout << "S0 won " << s0_wins << std::endl;
+  // Game* G = new Game(S0, S1, 1);
+  // int s0_wins = G->runGame();
+  // std::cout << "S0 won " << s0_wins << std::endl;
 
   delete S0;
   delete S1;

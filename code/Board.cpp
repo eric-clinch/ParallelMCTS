@@ -138,24 +138,23 @@ int Board::makeMove(const Move &move, Player playerID) {
   if (capture(row, col, stone, enemyStone, seenGrid)) {
     enemy_points = removeStones(row, col, stone);
   }
-  std::cout << enemy_points << "\n";
   // zeroFill(seenGrid, width * height);
-  if (row > 0 && board[row-1][col] == enemyStone && 
-          capture(row-1, col, enemyStone, stone, seenGrid)) {
-    points += removeStones(row-1, col, enemyStone);
+  if (row > 0 && board[row - 1][col] == enemyStone &&
+      capture(row - 1, col, enemyStone, stone, seenGrid)) {
+    points += removeStones(row - 1, col, enemyStone);
   }
   // zeroFill(seenGrid, widht * height);
-  if (row + 1 < height && board[row+1][col] == enemyStone &&
-          capture(row+1, col, enemyStone, stone, seenGrid)) {
-      points += removeStones(row+1, col, enemyStone);
+  if (row + 1 < height && board[row + 1][col] == enemyStone &&
+      capture(row + 1, col, enemyStone, stone, seenGrid)) {
+    points += removeStones(row + 1, col, enemyStone);
   }
-  if (col > 0 && board[row][col-1] == enemyStone && 
-          capture(row, col-1, enemyStone, stone, seenGrid)) {
-    points += removeStones(row, col-1, enemyStone);
+  if (col > 0 && board[row][col - 1] == enemyStone &&
+      capture(row, col - 1, enemyStone, stone, seenGrid)) {
+    points += removeStones(row, col - 1, enemyStone);
   }
-  if (col + 1 < width && board[row][col+1] == enemyStone &&
-          capture(row, col+1, enemyStone, stone, seenGrid)) {
-      points += removeStones(row, col+1, enemyStone);
+  if (col + 1 < width && board[row][col + 1] == enemyStone &&
+      capture(row, col + 1, enemyStone, stone, seenGrid)) {
+    points += removeStones(row, col + 1, enemyStone);
   }
   free(seenGrid);
   return points;
@@ -173,25 +172,21 @@ bool Board::capture(int row, int col, char stone, char enemyStone,
   }
   if (row - 1 >= 0) {
     if (!capture(row - 1, col, stone, enemyStone, seenGrid)) {
-        //std::cout << "case 1 : " << row << " " << col <<" : caught liberty\n";
-        return false;
+      return false;
     }
   }
   if (col + 1 < width) {
     if (!capture(row, col + 1, stone, enemyStone, seenGrid)) {
-      //std::cout << "case 2 : " << row << " " << col << ": caught liberty\n";
       return false;
     }
   }
   if (row + 1 < height) {
     if (!capture(row + 1, col, stone, enemyStone, seenGrid)) {
-      //std::cout << "case 3 : "<< row << " " << col << " : caught liberty\n";
       return false;
     }
   }
   if (col - 1 >= 0) {
     if (!capture(row, col - 1, stone, enemyStone, seenGrid)) {
-      //std::cout << "case 4 : " << row << " " << col << " : caught liberty\n";
       return false;
     }
   }
