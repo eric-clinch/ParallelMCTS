@@ -1,11 +1,39 @@
 
 #include <assert.h>
+#include <atomic>
+#include <cstring>
 #include <iostream>
 #include "Board.h"
 #include "Game.h"
 #include "MCTS.h"
 #include "Move.h"
 #include "Strategy.h"
+
+// option parsing code taken from 418 course starter code
+static int _argc;
+static const char** _argv;
+
+const char* get_option_string(const char* option_name,
+                              const char* default_value) {
+  for (int i = _argc - 2; i >= 0; i -= 2) {
+    if (strcmp(_argv[i], option_name) == 0) return _argv[i + 1];
+  }
+  return default_value;
+}
+
+int get_option_int(const char* option_name, int default_value) {
+  for (int i = _argc - 2; i >= 0; i -= 2) {
+    if (strcmp(_argv[i], option_name) == 0) return atoi(_argv[i + 1]);
+  }
+  return default_value;
+}
+
+float get_option_float(const char* option_name, float default_value) {
+  for (int i = _argc - 2; i >= 0; i -= 2) {
+    if (strcmp(_argv[i], option_name) == 0) return (float)atof(_argv[i + 1]);
+  }
+  return default_value;
+}
 
 void zeroFill(bool* seen, int length) {
   for (int i = 0; i < length; i++) seen[i] = false;
@@ -144,7 +172,13 @@ Board test7() {
   return board;
 }
 
-int main() {
+int main(int argc, const char* argv[]) {
+  _argc = argc - 1;
+  _argv = argv + 1;
+
+  int secondsPerMove = 1000 * get_option_int("-t", 1);
+  int threads = get_option_int("-p", 1);
+
   bool* seen = new bool[19 * 19];
   zeroFill(seen, 19 * 19);
 
@@ -187,9 +221,9 @@ int main() {
   zeroFill(seen, 19 * 19);
   Board board6 = test6();
   // std::cout
-     // << "------------------------------------------------------------\n\n";
+  // << "------------------------------------------------------------\n\n";
   // std::cout << "none of these pieces should be captured, but your code says "
-     //           "that the piece at (1, 0) is captured\n";
+  //           "that the piece at (1, 0) is captured\n";
 
   // std::cout << board6.toString();
   answer = board6.capture(0, 0, 'W', 'B', seen);
@@ -207,10 +241,8 @@ int main() {
   assert(11 == board7.removeStones(7, 6, 'W'));
   delete[] seen;
 
-<<<<<<< e3998b8e8a8fc3ffaf6ab3589b3bed5ffcf16b55
-=======
-  Strategy* S0 = new MCTS(20000, 2);
-  Strategy* S1 = new MCTS(20000, 2);
+  Strategy* S0 = new MCTS(secondsPerMove, threads);
+  Strategy* S1 = new MCTS(secondsPerMove, threads);
 
   Game* G = new Game(S0, S1, 1);
   int s0_wins = G->runGame();
@@ -219,6 +251,5 @@ int main() {
   delete S0;
   delete S1;
 
->>>>>>> first implementation of playout parallelism
   return 0;
 }
