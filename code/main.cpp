@@ -156,7 +156,6 @@ int main() {
   Move move(1, 2);
   board0.makeMove(move, P0);
   std::cout << board0.toString();
-  std::cout << "The B piece wasn't captured :(\n\n";
 
   zeroFill(seen, 19 * 19);
   Board board1 = test1();
@@ -187,15 +186,18 @@ int main() {
 
   zeroFill(seen, 19 * 19);
   Board board6 = test6();
-  std::cout
-      << "------------------------------------------------------------\n\n";
-  std::cout << "none of these pieces should be captured, but your code says "
-               "that the piece at (1, 0) is captured\n";
+  // std::cout
+     // << "------------------------------------------------------------\n\n";
+  // std::cout << "none of these pieces should be captured, but your code says "
+     //           "that the piece at (1, 0) is captured\n";
 
-  std::cout << board6.toString();
-  answer = board6.capture(1, 0, 'W', 'B', seen);
-  assert(answer == true);
-  assert(4 == board6.removeStones(0, 1, 'W'));
+  // std::cout << board6.toString();
+  answer = board6.capture(0, 0, 'W', 'B', seen);
+  assert(answer == false);
+  zeroFill(seen, 19 * 19);
+  bool answer2 = board6.capture(1, 0, 'B', 'W', seen);
+  assert(answer2 == false);
+  assert(4 == board6.removeStones(0, 0, 'W'));
   zeroFill(seen, 19 * 19);
 
   zeroFill(seen, 19 * 19);
@@ -203,18 +205,7 @@ int main() {
   answer = board7.capture(7, 6, 'W', 'B', seen);
   assert(answer == true);
   assert(11 == board7.removeStones(7, 6, 'W'));
-
   delete[] seen;
-
-  // Strategy* S0 = new MCTS();
-  // Strategy* S1 = new MCTS();
-
-  // Game* G = new Game(S0, S1, 1);
-  // int s0_wins = G->runGame();
-  // std::cout << "S0 won " << s0_wins << std::endl;
-
-  // delete S0;
-  // delete S1;
 
   return 0;
 }
