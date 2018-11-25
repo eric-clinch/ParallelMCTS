@@ -36,7 +36,7 @@ class Board {
   virtual std::vector<Move> getMoves() const;
   virtual int makeMove(const Move &move, Player playerID);
   virtual bool capture(int i, int j, char stone, char enemyStone,
-                       bool *seenGrid);
+                       bool *seenGrid, int iter);
   virtual int removeStones(int x, int y, char stone);
 
   virtual std::string toString() const;

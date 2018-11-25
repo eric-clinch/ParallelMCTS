@@ -45,9 +45,9 @@ Board::~Board() {
   delete[] board;
 }
 
-/*void zeroFill(bool* seen, int length) {
+void seenZeroFill(bool* seen, int length) {
     for (int i = 0; i < length; i++) seen[i] = false;
-}*/
+}
 
 Board Board::getCopy() const {
   Board result(width, height);
@@ -110,6 +110,7 @@ std::vector<Move> Board::getMoves() const {
 }
 
 int Board::makeMove(const Move &move, Player playerID) {
+  // std::cout << "starting makeMove...\n";
   char stone;
   char enemyStone;
   if (playerID == P0) {
@@ -135,25 +136,36 @@ int Board::makeMove(const Move &move, Player playerID) {
   int points = 0;
   // because current row, col is for stone, we need to check 4 adjacent squares
   // for islands of enemyStone that are completely surrounded
-  if (capture(row, col, stone, enemyStone, seenGrid)) {
+  //std::cout << "case 0\n";
+  if (capture(row, col, stone, enemyStone, seenGrid, 0)) {
     enemy_points = removeStones(row, col, stone);
   }
-  // zeroFill(seenGrid, width * height);
+
+  seenZeroFill(seenGrid, width * height);
+
   if (row > 0 && board[row - 1][col] == enemyStone &&
-      capture(row - 1, col, enemyStone, stone, seenGrid)) {
+      capture(row - 1, col, enemyStone, stone, seenGrid, 0)) {
     points += removeStones(row - 1, col, enemyStone);
   }
-  // zeroFill(seenGrid, widht * height);
+
+  seenZeroFill(seenGrid, width * height);
+
   if (row + 1 < height && board[row + 1][col] == enemyStone &&
-      capture(row + 1, col, enemyStone, stone, seenGrid)) {
+      capture(row + 1, col, enemyStone, stone, seenGrid, 0)) {
     points += removeStones(row + 1, col, enemyStone);
   }
+
+  seenZeroFill(seenGrid, width * height);
+
   if (col > 0 && board[row][col - 1] == enemyStone &&
-      capture(row, col - 1, enemyStone, stone, seenGrid)) {
+      capture(row, col - 1, enemyStone, stone, seenGrid, 0)) {
     points += removeStones(row, col - 1, enemyStone);
   }
+
+  seenZeroFill(seenGrid, width * height);
+
   if (col + 1 < width && board[row][col + 1] == enemyStone &&
-      capture(row, col + 1, enemyStone, stone, seenGrid)) {
+      capture(row, col + 1, enemyStone, stone, seenGrid, 0)) {
     points += removeStones(row, col + 1, enemyStone);
   }
   free(seenGrid);
@@ -162,31 +174,36 @@ int Board::makeMove(const Move &move, Player playerID) {
 
 // check if current location is in an enclosed mass
 bool Board::capture(int row, int col, char stone, char enemyStone,
-                    bool *seenGrid) {
+                    bool *seenGrid, int iter) {
   if (seenGrid[row * width + col]) return true;
   seenGrid[row * width + col] = true;
   if (board[row][col] != P0STONE && board[row][col] != P1STONE) {
     return false;
   } else if (board[row][col] == enemyStone) {
-    return true;
+      // std::cout << row << " " << col << " " << enemyStone<<" \n";
+      return true;
   }
-  if (row - 1 >= 0) {
-    if (!capture(row - 1, col, stone, enemyStone, seenGrid)) {
+  // std::cout << "iter: " << iter << " 1 "<< row - 1 << " "<< col << "\n";
+  if (row > 0) {
+    if (!capture(row - 1, col, stone, enemyStone, seenGrid, iter+1)) {
       return false;
     }
   }
+  // std::cout << "iter: " << iter << " 2 " << row << " " << col+1 << "\n";
   if (col + 1 < width) {
-    if (!capture(row, col + 1, stone, enemyStone, seenGrid)) {
+    if (!capture(row, col + 1, stone, enemyStone, seenGrid, iter+1)) {
       return false;
     }
   }
+  // std::cout << "iter: " << iter << " 3 "<< row + 1 << col << "\n";
   if (row + 1 < height) {
-    if (!capture(row + 1, col, stone, enemyStone, seenGrid)) {
+    if (!capture(row + 1, col, stone, enemyStone, seenGrid, iter+1)) {
       return false;
     }
   }
+  // std::cout << "iter: " << iter << " 4 "<< row << " " << col-1 << "\n";
   if (col - 1 >= 0) {
-    if (!capture(row, col - 1, stone, enemyStone, seenGrid)) {
+    if (!capture(row, col - 1, stone, enemyStone, seenGrid, iter+1)) {
       return false;
     }
   }
