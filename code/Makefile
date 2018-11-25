@@ -10,8 +10,6 @@ CXXFLAGS = -I. -O3 -Wall -Wno-unknown-pragmas
 
 # Compilation Rules
 $(APP_NAME): $(OBJS)
-	echo $(SRCS)
-	echo test
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJS)
 
 %.o: %.cpp
