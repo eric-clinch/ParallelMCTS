@@ -4,9 +4,9 @@
 #include <sstream>
 #include <string>
 
-char Board::P0STONE = 'W';
-char Board::P1STONE = 'B';
-char Board::BLANK = '-';
+const char Board::P0STONE = 'W';
+const char Board::P1STONE = 'B';
+const char Board::BLANK = '-';
 
 Board::Board() {
   width = 19;

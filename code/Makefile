@@ -1,6 +1,6 @@
 APP_NAME=mcts
 
-SRCS= Board.cpp MCTS.cpp main.cpp TreeNode.cpp
+SRCS=$(shell find . -name "*.cpp")
 OBJS=$(subst .cpp,.o,$(SRCS))
 
 default: $(APP_NAME)
@@ -10,6 +10,8 @@ CXXFLAGS = -I. -O3 -Wall -Wno-unknown-pragmas
 
 # Compilation Rules
 $(APP_NAME): $(OBJS)
+	echo $(SRCS)
+	echo test
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJS)
 
 %.o: %.cpp

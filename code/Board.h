@@ -42,6 +42,11 @@ class Board {
   virtual std::string toString() const;
   virtual void update(int i, int j, char stone);
 
+ public:
+  static const char P0STONE;
+  static const char P1STONE;
+  static const char BLANK;
+
  private:
   virtual unsigned int stoneCount(char stone) const;
   bool isValid() const;
@@ -52,10 +57,6 @@ class Board {
 
   size_t P0Stones;
   size_t P1Stones;
-
-  static char P0STONE;
-  static char P1STONE;
-  static char BLANK;
 };
 
 #endif

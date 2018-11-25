@@ -8,6 +8,7 @@
 #include "MCTS.h"
 #include "Move.h"
 #include "Strategy.h"
+#include "UserPlayer.h"
 
 // option parsing code taken from 418 course starter code
 static int _argc;
@@ -238,10 +239,11 @@ int main(int argc, const char* argv[]) {
 
   Strategy* S0 = new MCTS(secondsPerMove, threads);
   Strategy* S1 = new MCTS(secondsPerMove, threads);
+  Strategy* user = new UserPlayer();
 
-  // Game* G = new Game(S0, S1, 1);
-  // int s0_wins = G->runGame();
-  // std::cout << "S0 won " << s0_wins << std::endl;
+  Game* G = new Game(S0, user, 1);
+  int s0_wins = G->runGame();
+  std::cout << "S0 won " << s0_wins << std::endl;
 
   delete S0;
   delete S1;
