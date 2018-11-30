@@ -3,7 +3,7 @@ import time
 
 def cleanLine(line):
     line = str(line)
-    line = line[2:-3]
+    line = line[2:-3] # strip irrelevant characters
     return line.strip()
 
 #taken from http://www.cs.cmu.edu/~112/notes/notes-graphics.html
@@ -16,7 +16,7 @@ def rgbString(red, green, blue):
 from tkinter import *
 
 def init(data):
-    data.process = subprocess.Popen(['./mcts'], stdout=subprocess.PIPE, 
+    data.process = subprocess.Popen(['./mcts', '-t', '5'], stdout=subprocess.PIPE, 
                                     stdin=subprocess.PIPE)
     data.boardLen = 19
     data.board = [['-'] * data.boardLen for _ in range(data.boardLen)]
@@ -32,8 +32,8 @@ def init(data):
     data.circleMargin = 2
 
 def mousePressed(event, data):
-    row = (event.y - data.margin) // data.cellHeight
-    col = (event.x - data.margin) // data.cellWidth
+    row = int((event.y - data.margin) // data.cellHeight)
+    col = int((event.x - data.margin) // data.cellWidth)
     if (0 <= row < data.boardLen and 0 <= col < data.boardLen):
         data.move = (row, col)
         message = "%d %d\n" % (row, col)
@@ -76,7 +76,10 @@ def timerFired(data):
         elif 'try again' in line:
             data.waitingOnMove = True
             break
-
+        elif '******' in line:
+            moveRow, moveCol = data.move
+            data.board[moveRow][moveCol] = data.turn
+            break
 
 def redrawAll(canvas, data):
     canvas.create_rectangle(0, 0, data.width, data.height, 

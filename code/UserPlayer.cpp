@@ -39,6 +39,6 @@ const Move UserPlayer::getMove(Board &board, Player playerID, Player enemyID) {
     }
   }
 
-  std::cout << "**********************************\n";
+  std::cout << "**********************************\n" << std::flush;
   return result;
 }
