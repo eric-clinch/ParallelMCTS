@@ -177,7 +177,7 @@ int main(int argc, const char* argv[]) {
   _argc = argc - 1;
   _argv = argv + 1;
 
-  int secondsPerMove = 1000 * get_option_int("-t", 1);
+  int msPerMove = 1000 * get_option_int("-t", 1);
   int threads = get_option_int("-p", 1);
 
   bool* seen = new bool[19 * 19];
@@ -189,7 +189,7 @@ int main(int argc, const char* argv[]) {
 
   std::cout << board0.toString();
   Move move(2, 1);
-  
+
   board0.makeMove(move, P0);
   std::cout << board0.toString();
 
@@ -237,8 +237,8 @@ int main(int argc, const char* argv[]) {
   assert(11 == board7.removeStones(7, 6, 'W'));
   delete[] seen;
 
-  Strategy* S0 = new MCTS(secondsPerMove, threads);
-  Strategy* S1 = new MCTS(secondsPerMove, threads);
+  Strategy* S0 = new MCTS(msPerMove, threads);
+  Strategy* S1 = new MCTS(msPerMove, threads);
   Strategy* user = new UserPlayer();
 
   Game* G = new Game(S0, user, 1);
