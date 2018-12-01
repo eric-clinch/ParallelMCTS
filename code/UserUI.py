@@ -1,5 +1,14 @@
 import subprocess
 import time
+import sys
+
+SECONDS_PER_MOVE = 1
+THREADS = 1
+
+if (len(sys.argv) > 1):
+    SECONDS_PER_MOVE = int(sys.argv[1])
+if (len(sys.argv) > 2):
+    THREADS = int(sys.argv[2])
 
 def cleanLine(line):
     line = str(line)
@@ -16,7 +25,7 @@ def rgbString(red, green, blue):
 from tkinter import *
 
 def init(data):
-    data.process = subprocess.Popen(['./mcts', '-t', '5'], stdout=subprocess.PIPE, 
+    data.process = subprocess.Popen(['./mcts', '-t', str(SECONDS_PER_MOVE), '-p', str(THREADS)], stdout=subprocess.PIPE, 
                                     stdin=subprocess.PIPE)
     data.boardLen = 19
     data.board = [['-'] * data.boardLen for _ in range(data.boardLen)]
@@ -26,7 +35,7 @@ def init(data):
     data.move = None
 
     data.backgroundColor = rgbString(219, 190, 122)
-    data.margin = 10
+    data.margin = 30
     data.cellWidth = (data.width - 2 * data.margin) / data.boardLen
     data.cellHeight = (data.height - 2 * data.margin) / data.boardLen
     data.circleMargin = 2
@@ -82,7 +91,7 @@ def timerFired(data):
             break
 
 def redrawAll(canvas, data):
-    canvas.create_rectangle(0, 0, data.width, data.height, 
+    canvas.create_rectangle(0, 0, data.width, data.height,
                             fill=data.backgroundColor)
     for row in range(data.boardLen):
         for col in range(data.boardLen):
@@ -90,7 +99,10 @@ def redrawAll(canvas, data):
             right = left + data.cellWidth
             top = data.margin + data.cellHeight * row
             bot = top + data.cellWidth
-            canvas.create_rectangle(left, top, right, bot)
+            if (row < data.boardLen - 1 and col < data.boardLen - 1):
+                canvas.create_rectangle(left + data.cellWidth / 2, 
+                    top + data.cellHeight / 2, right + data.cellWidth / 2, 
+                    bot + data.cellHeight / 2)
             if data.board[row][col] != '-':
                 color = 'red'
                 if data.board[row][col] == 'B':
@@ -100,6 +112,9 @@ def redrawAll(canvas, data):
                 canvas.create_oval(left + data.circleMargin, 
                     top + data.circleMargin, right - data.circleMargin, 
                     bot - data.circleMargin, fill=color)
+
+    if data.waitingOnMove:
+        canvas.create_text(data.width / 2, data.margin / 2, text="Your Turn")
 
 def run(width=300, height=300):
     def redrawAllWrapper(canvas, data):
@@ -145,4 +160,4 @@ def run(width=300, height=300):
     root.mainloop()  # blocks until window is closed
     print("bye!")
 
-run(600, 600)
+run(700, 700)
