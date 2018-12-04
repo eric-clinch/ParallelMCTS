@@ -12,7 +12,7 @@ if (len(sys.argv) > 2):
 
 def cleanLine(line):
     line = str(line)
-    line = line[2:-3] # strip irrelevant characters
+    line = line[2:-3] # strip irrelevant characters:w
     return line.strip()
 
 #taken from http://www.cs.cmu.edu/~112/notes/notes-graphics.html

@@ -2,6 +2,8 @@
 #ifndef BOARD_h
 #define BOARD_h
 
+#define NDEBUG
+
 #include <assert.h>
 #include <math.h>
 #include <iostream>
@@ -9,6 +11,8 @@
 #include "Move.h"
 
 using namespace std;
+
+class BoardTest;
 
 enum Player { P0 = 0, P1 = 1 };
 
@@ -25,6 +29,8 @@ class Board {
   virtual Board getCopy() const;
   virtual void copyInto(Board &result) const;
 
+  virtual void seenZeroFill();
+
   virtual bool gameIsOver() const;
   virtual unsigned int playerScore(Player playerID) const;
 
@@ -35,12 +41,13 @@ class Board {
 
   virtual std::vector<Move> getMoves() const;
   virtual int makeMove(const Move &move, Player playerID);
-  virtual bool capture(int i, int j, char stone, char enemyStone,
-                       bool *seenGrid, int iter);
+  virtual bool capture(int i, int j, char stone, char enemyStone, int iter);
   virtual int removeStones(int x, int y, char stone);
 
   virtual std::string toString() const;
   virtual void update(int i, int j, char stone);
+
+  friend class BoardTest;
 
  public:
   static const char P0STONE;
@@ -54,9 +61,13 @@ class Board {
  private:
   int width, height;
   char **board;
+  bool *seenGrid;
 
   size_t P0Stones;
   size_t P1Stones;
+
+  size_t P0Captures;  // the number of stones that P0 has captured
+  size_t P1Captures;  // the number of stones that P1 has captured
 };
 
 #endif

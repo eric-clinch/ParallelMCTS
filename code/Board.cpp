@@ -1,4 +1,5 @@
 #include "Board.h"
+#include "BoardTest.h"
 #include <assert.h>
 #include <cstring>
 #include <sstream>
@@ -19,8 +20,12 @@ Board::Board() {
     }
   }
 
+  seenGrid = new bool[height * width];
+
   P0Stones = 0;
   P1Stones = 0;
+  P0Captures = 0;
+  P1Captures = 0;
 }
 
 Board::Board(int w, int h) {
@@ -34,8 +39,12 @@ Board::Board(int w, int h) {
     }
   }
 
+  seenGrid = new bool[height * width];
+
   P0Stones = 0;
   P1Stones = 0;
+  P0Captures = 0;
+  P1Captures = 0;
 }
 
 Board::~Board() {
@@ -45,8 +54,8 @@ Board::~Board() {
   delete[] board;
 }
 
-void seenZeroFill(bool* seen, int length) {
-    for (int i = 0; i < length; i++) seen[i] = false;
+void Board::seenZeroFill() {
+  for (int i = 0; i < width * height; i++) seenGrid[i] = false;
 }
 
 Board Board::getCopy() const {
@@ -57,7 +66,10 @@ Board Board::getCopy() const {
 
   result.P0Stones = P0Stones;
   result.P1Stones = P1Stones;
+  result.P0Captures = P0Captures;
+  result.P1Captures = P1Captures;
 
+  assert(result.isValid());
   return result;
 }
 
@@ -68,21 +80,14 @@ void Board::copyInto(Board &result) const {
 
   result.P0Stones = P0Stones;
   result.P1Stones = P1Stones;
+  result.P0Captures = P0Captures;
+  result.P1Captures = P1Captures;
+
+  assert(result.isValid());
 }
 
 inline bool Board::gameIsOver() const {
-  char init = BLANK;
-  for (int i = 0; i < height; i++) {
-    for (int j = 0; j < width; j++) {
-      if (init == BLANK && board[i][j] != BLANK) {
-        init = board[i][j];
-      }
-      if (init != BLANK && board[i][j] != BLANK && board[i][j] != init) {
-        return false;
-      }
-    }
-  }
-  return true;
+  return (P0Stones == width * height) || (P1Stones == width * height);
 }
 
 inline int Board::getWidth() const { return width; }
@@ -110,7 +115,8 @@ std::vector<Move> Board::getMoves() const {
 }
 
 int Board::makeMove(const Move &move, Player playerID) {
-  // std::cout << "starting makeMove...\n";
+  assert(isValid());
+
   char stone;
   char enemyStone;
   if (playerID == P0) {
@@ -127,83 +133,87 @@ int Board::makeMove(const Move &move, Player playerID) {
   board[row][col] = stone;
 
   // remove surrounded islands
-  bool *seenGrid =
-      reinterpret_cast<bool *>(malloc(height * width * sizeof(bool)));
-  for (int i = 0; i < height * width; i++) {
-    seenGrid[i] = false;
-  }
   int enemy_points = 0;
   int points = 0;
+
+  seenZeroFill();
+
   // because current row, col is for stone, we need to check 4 adjacent squares
   // for islands of enemyStone that are completely surrounded
-  //std::cout << "case 0\n";
-  if (capture(row, col, stone, enemyStone, seenGrid, 0)) {
+  if (capture(row, col, stone, enemyStone, 0)) {
     enemy_points = removeStones(row, col, stone);
   }
 
-  seenZeroFill(seenGrid, width * height);
+  seenZeroFill();
 
   if (row > 0 && board[row - 1][col] == enemyStone &&
-      capture(row - 1, col, enemyStone, stone, seenGrid, 0)) {
+      capture(row - 1, col, enemyStone, stone, 0)) {
     points += removeStones(row - 1, col, enemyStone);
   }
 
-  seenZeroFill(seenGrid, width * height);
+  seenZeroFill();
 
   if (row + 1 < height && board[row + 1][col] == enemyStone &&
-      capture(row + 1, col, enemyStone, stone, seenGrid, 0)) {
+      capture(row + 1, col, enemyStone, stone, 0)) {
     points += removeStones(row + 1, col, enemyStone);
   }
 
-  seenZeroFill(seenGrid, width * height);
+  seenZeroFill();
 
   if (col > 0 && board[row][col - 1] == enemyStone &&
-      capture(row, col - 1, enemyStone, stone, seenGrid, 0)) {
+      capture(row, col - 1, enemyStone, stone, 0)) {
     points += removeStones(row, col - 1, enemyStone);
   }
 
-  seenZeroFill(seenGrid, width * height);
+  seenZeroFill();
 
   if (col + 1 < width && board[row][col + 1] == enemyStone &&
-      capture(row, col + 1, enemyStone, stone, seenGrid, 0)) {
+      capture(row, col + 1, enemyStone, stone, 0)) {
     points += removeStones(row, col + 1, enemyStone);
   }
-  free(seenGrid);
+
+  if (playerID == P0) {
+    P0Stones += 1 - enemy_points;
+    P0Captures += points;
+    P1Stones -= points;
+    P1Captures += enemy_points;
+  } else {
+    P1Stones += 1 - enemy_points;
+    P1Captures += points;
+    P0Stones -= points;
+    P0Captures += enemy_points;
+  }
+
+  assert(isValid());
   return points;
 }
 
 // check if current location is in an enclosed mass
-bool Board::capture(int row, int col, char stone, char enemyStone,
-                    bool *seenGrid, int iter) {
+bool Board::capture(int row, int col, char stone, char enemyStone, int iter) {
   if (seenGrid[row * width + col]) return true;
   seenGrid[row * width + col] = true;
   if (board[row][col] != P0STONE && board[row][col] != P1STONE) {
     return false;
   } else if (board[row][col] == enemyStone) {
-      // std::cout << row << " " << col << " " << enemyStone<<" \n";
-      return true;
+    return true;
   }
-  // std::cout << "iter: " << iter << " 1 "<< row - 1 << " "<< col << "\n";
   if (row > 0) {
-    if (!capture(row - 1, col, stone, enemyStone, seenGrid, iter+1)) {
+    if (!capture(row - 1, col, stone, enemyStone, iter + 1)) {
       return false;
     }
   }
-  // std::cout << "iter: " << iter << " 2 " << row << " " << col+1 << "\n";
   if (col + 1 < width) {
-    if (!capture(row, col + 1, stone, enemyStone, seenGrid, iter+1)) {
+    if (!capture(row, col + 1, stone, enemyStone, iter + 1)) {
       return false;
     }
   }
-  // std::cout << "iter: " << iter << " 3 "<< row + 1 << col << "\n";
   if (row + 1 < height) {
-    if (!capture(row + 1, col, stone, enemyStone, seenGrid, iter+1)) {
+    if (!capture(row + 1, col, stone, enemyStone, iter + 1)) {
       return false;
     }
   }
-  // std::cout << "iter: " << iter << " 4 "<< row << " " << col-1 << "\n";
   if (col - 1 >= 0) {
-    if (!capture(row, col - 1, stone, enemyStone, seenGrid, iter+1)) {
+    if (!capture(row, col - 1, stone, enemyStone, iter + 1)) {
       return false;
     }
   }
@@ -224,7 +234,7 @@ int Board::removeStones(int row, int col, char stone) {
 
 unsigned int Board::playerScore(Player playerID) const {
   char playerStone = playerID == P0 ? P0STONE : P1STONE;
-  return stoneCount(playerStone);
+  return playerID == P0 ? P0Stones + P0Captures : P1Stones + P1Captures;
 }
 
 unsigned int Board::stoneCount(char stone) const {
