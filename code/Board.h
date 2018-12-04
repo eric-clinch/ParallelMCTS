@@ -6,6 +6,7 @@
 #include <math.h>
 #include <iostream>
 #include <vector>
+#include <mutex>
 #include "Move.h"
 
 using namespace std;
@@ -28,8 +29,8 @@ class Board {
   virtual bool gameIsOver() const;
   virtual unsigned int playerScore(Player playerID) const;
 
-  virtual inline int getWidth() const;
-  virtual inline int getHeight() const;
+  virtual int getWidth() const;
+  virtual int getHeight() const;
 
   virtual bool isLegal(const Move &move, Player playerID) const;
 

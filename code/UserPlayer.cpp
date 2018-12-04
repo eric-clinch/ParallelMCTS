@@ -8,7 +8,7 @@ UserPlayer::UserPlayer() {}
 const Move UserPlayer::getMove(Board &board, Player playerID, Player enemyID) {
   const char stone = playerID == P0 ? Board::P0STONE : Board::P1STONE;
   std::cout << stone << "'s move" << std::endl;
-  std::cout << board.toString() << std::endl;
+  // std::cout << board.toString() << std::endl;
 
   while (true) {
     std::cout << "Move (row col): ";

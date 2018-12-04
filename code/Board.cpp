@@ -50,22 +50,26 @@ void seenZeroFill(bool* seen, int length) {
 }
 
 Board Board::getCopy() const {
+  mutex board_lock;
+  board_lock.lock();
   Board result(width, height);
   for (int i = 0; i < height; i++) {
     std::memcpy(&result.board[i][0], &board[i][0], width * sizeof(char));
   }
+  board_lock.unlock();
 
   result.P0Stones = P0Stones;
   result.P1Stones = P1Stones;
-
   return result;
 }
 
 void Board::copyInto(Board &result) const {
+  mutex board_mtx;
+  board_mtx.lock();
   for (int i = 0; i < height; i++) {
     std::memcpy(&result.board[i][0], &board[i][0], width * sizeof(char));
   }
-
+  board_mtx.unlock();
   result.P0Stones = P0Stones;
   result.P1Stones = P1Stones;
 }
@@ -110,7 +114,6 @@ std::vector<Move> Board::getMoves() const {
 }
 
 int Board::makeMove(const Move &move, Player playerID) {
-  // std::cout << "starting makeMove...\n";
   char stone;
   char enemyStone;
   if (playerID == P0) {
@@ -136,7 +139,6 @@ int Board::makeMove(const Move &move, Player playerID) {
   int points = 0;
   // because current row, col is for stone, we need to check 4 adjacent squares
   // for islands of enemyStone that are completely surrounded
-  //std::cout << "case 0\n";
   if (capture(row, col, stone, enemyStone, seenGrid, 0)) {
     enemy_points = removeStones(row, col, stone);
   }
@@ -180,28 +182,23 @@ bool Board::capture(int row, int col, char stone, char enemyStone,
   if (board[row][col] != P0STONE && board[row][col] != P1STONE) {
     return false;
   } else if (board[row][col] == enemyStone) {
-      // std::cout << row << " " << col << " " << enemyStone<<" \n";
       return true;
   }
-  // std::cout << "iter: " << iter << " 1 "<< row - 1 << " "<< col << "\n";
   if (row > 0) {
     if (!capture(row - 1, col, stone, enemyStone, seenGrid, iter+1)) {
       return false;
     }
   }
-  // std::cout << "iter: " << iter << " 2 " << row << " " << col+1 << "\n";
   if (col + 1 < width) {
     if (!capture(row, col + 1, stone, enemyStone, seenGrid, iter+1)) {
       return false;
     }
   }
-  // std::cout << "iter: " << iter << " 3 "<< row + 1 << col << "\n";
   if (row + 1 < height) {
     if (!capture(row + 1, col, stone, enemyStone, seenGrid, iter+1)) {
       return false;
     }
   }
-  // std::cout << "iter: " << iter << " 4 "<< row << " " << col-1 << "\n";
   if (col - 1 >= 0) {
     if (!capture(row, col - 1, stone, enemyStone, seenGrid, iter+1)) {
       return false;

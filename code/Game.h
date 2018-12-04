@@ -3,6 +3,7 @@
 
 #include <Board.h>
 #include <Strategy.h>
+#include <MCTS.h>
 #include <assert.h>
 #include <iostream>
 #include <vector>
@@ -38,16 +39,15 @@ class Game {
       enemy_p = P1;
       s0_stones = 0;
       s1_stones = 0;
-      std::cout << "beginning testing..." << std::endl;
       // initial moves to avoid bug of returning on empty board
       Move m = S0->getMove(*B, curr_p, enemy_p);
+      std::cout << m.getRow() << " " << m.getCol() << "\n";
       B->makeMove(m, curr_p);
+      std::cout << B->toString();
       m = S1->getMove(*B, enemy_p, curr_p);
       B->makeMove(m, enemy_p);
-
+      std::cout << B->toString();
       while (!(B->gameIsOver())) {
-        std::cout << B->toString();
-
         if (curr_p == P0) {
           m = S0->getMove(*B, curr_p, enemy_p);
         } else {
@@ -59,6 +59,7 @@ class Game {
         } else {
           s1_stones += captured_stones;
         }
+        std::cout << B->toString();
         curr_p = (curr_p == P0) ? P1 : P0;
         enemy_p = (enemy_p == P1) ? P0 : P1;
       }

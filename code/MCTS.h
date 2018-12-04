@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <random>
+// #include <mutex>
 #include "Board.h"
 #include "MAB.h"
 #include "Move.h"
@@ -18,7 +19,23 @@ struct workerArg {
   volatile std::atomic<size_t> activeCount;
   std::atomic<size_t> winCount;
   volatile char barrierFlag;  // sense-reversing flag
+  // TreeNode *node;
 };
+
+// for the purposes of MCTS parallelization
+struct mainArg {
+  void *mctsObj;
+  Board *board;
+  Player playerID;
+  Player enemyID;
+  TreeNode *node;
+  unsigned int workerThreads;
+  unsigned int iterationThreads;
+  int64_t ms;
+  // int id;
+  // struct workerArg *nestedArgs;
+};
+// end
 
 struct playoutJob {
   Board *board;
@@ -30,13 +47,16 @@ class MCTS : public Strategy {
  public:
   MCTS(int64_t msPerMove, unsigned int playoutThreads);
   ~MCTS();
-  virtual const Move getMove(Board &board, Player playerID, Player enemyID);
+  virtual const Move getMove(Board &board, Player playerID,
+          Player enemyID);
 
  private:
   // perform one iteration of the MCTS algorithm starting from the given node
+  static void *getMoveHelper(void *arg);
   float MCTSIteration(Board &board, Player playerID, Player enemyID,
                       TreeNode &node, workerArg *groupInfo);
 
+  // static void *MCTSIterationWorker(void *args);
   float performPlayouts(Board &board, Player playerID, Player enemyID,
                         workerArg *groupInfo);
   static int playout(Board *board, Player playerID, Player enemyID);

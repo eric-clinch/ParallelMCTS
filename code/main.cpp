@@ -187,11 +187,11 @@ int main(int argc, const char* argv[]) {
   bool answer = board0.capture(1, 1, 'B', 'W', seen, 0);
   assert(answer == false);
 
-  std::cout << board0.toString();
+  // std::cout << board0.toString();
   Move move(2, 1);
   
   board0.makeMove(move, P0);
-  std::cout << board0.toString();
+  // std::cout << board0.toString();
 
   zeroFill(seen, 19 * 19);
   Board board1 = test1();
@@ -235,10 +235,11 @@ int main(int argc, const char* argv[]) {
   answer = board7.capture(7, 6, 'W', 'B', seen, 0);
   assert(answer == true);
   assert(11 == board7.removeStones(7, 6, 'W'));
+  std::cout << "Test cases passed!\n";
   delete[] seen;
 
   Strategy* S0 = new MCTS(secondsPerMove, threads);
-  Strategy* S1 = new MCTS(secondsPerMove, threads);
+  // Strategy* S1 = new MCTS(secondsPerMove, threads);
   Strategy* user = new UserPlayer();
 
   Game* G = new Game(S0, user, 1);
@@ -246,7 +247,7 @@ int main(int argc, const char* argv[]) {
   std::cout << "S0 won " << s0_wins << std::endl;
 
   delete S0;
-  delete S1;
+  // delete S1;
 
   return 0;
 }
