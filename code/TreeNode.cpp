@@ -3,12 +3,15 @@
 
 TreeNode::TreeNode(const Board &board, Player playerID, Player enemyID)
     : playerID(playerID), enemyID(enemyID), visits(0) {
+  
   std::lock_guard<std::mutex> g(node_mtx);       
+  
   std::vector<Move> moves = board.getMoves();
   for (Move move : moves) {
     moveUtilities.push_back(UtilityNode<Move>(move));
     children.push_back(NULL);
   }
+  
   // creating array of moves that are 'available'
   std::vector<bool> movesAvailable;
   for (int i = 0; i < board.getWidth() * board.getHeight(); i++) {
@@ -29,11 +32,12 @@ TreeNode::~TreeNode() {
 
 std::tuple<int, TreeNode *, bool> TreeNode::getAndMakeMove(MAB<Move> &mab,
                                                            Board &board) {
+  std::lock_guard<std::mutex> g(node_mtx);
   int moveIndex = mab.getChoice(movesAvailable, moveUtilities, visits);
   Move move = moveUtilities[moveIndex].object;
   board.makeMove(move, playerID);
   bool isLeaf = false;
-  std::lock_guard<std::mutex> g(node_mtx);
+  // std::lock_guard<std::mutex> g(node_mtx);
 
   if (children[moveIndex] == NULL) {
     children[moveIndex] = new TreeNode(board, enemyID, playerID);
@@ -55,7 +59,7 @@ const Move TreeNode::getMostVisited() {
 
   const Move *result = NULL;
   unsigned int resultTrials = 0;
-
+  std::lock_guard<std::mutex> g(node_mtx);
   for (const UtilityNode<Move> &moveUtility : moveUtilities) {
     if (result == NULL || moveUtility.numTrials > resultTrials) {
       result = &moveUtility.object;
