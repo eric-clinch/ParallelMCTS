@@ -65,17 +65,14 @@ void *MCTS::getMoveHelper(void *arg) {
   groupInfo.activeCount = 0;
   groupInfo.winCount = 0;
   groupInfo.barrierFlag = 0;
-  printf("part 1\n");
   for (unsigned int i = 0; i < (unsigned int)playoutThreads - 1; i++) {
     pthread_create(&workers[i], NULL, playoutWorker,
                    reinterpret_cast<void *>(&groupInfo));
   }
-  printf("part 2\n");
   Board copyBoard(board->getWidth(), board->getHeight());
   int64_t startTime = Tools::getTime();
   for (int64_t currentTime = startTime; currentTime - startTime < msPerMove;
           currentTime = Tools::getTime()) {
-    printf("time elapsed: %ld %ld\n", currentTime - startTime, msPerMove);
     board->copyInto(copyBoard);
     mctsObject->MCTSIteration(copyBoard, playerID, enemyID, *root, &groupInfo);
     iterations++;
@@ -83,7 +80,6 @@ void *MCTS::getMoveHelper(void *arg) {
 
   groupInfo.board = NULL;
   groupInfo.activeCount = 1;
-  printf("part 3\n");
   for (unsigned int i = 0; i < (unsigned int)playoutThreads - 1; i++) {
     pthread_join(workers[i], NULL);
   }
@@ -94,15 +90,17 @@ void *MCTS::getMoveHelper(void *arg) {
 // perform one iteration of the MCTS algorithm starting from the given node
 float MCTS::MCTSIteration(Board &board, Player playerID, Player enemyID,
                           TreeNode &node, workerArg *groupInfo) {
+  printf("starting MCTSIteration...\n");
   if (node.isLeaf()) {
     return performPlayouts(board, playerID, enemyID, groupInfo);
   }
+  printf("after node.isleaf() \n");
   int moveIndex;
   TreeNode *child;
   bool childIsLeaf;
 
   std::tie(moveIndex, child, childIsLeaf) = node.getAndMakeMove(*mab, board);
-
+  printf("index: %d\n", moveIndex);
   float result;
   if (childIsLeaf) {
     result = performPlayouts(board, playerID, enemyID, groupInfo);

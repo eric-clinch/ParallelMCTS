@@ -73,7 +73,7 @@ const Move TreeNode::getMostVisited() {
 
 bool TreeNode::isLeaf() { 
     std::lock_guard<std::mutex> g(node_mtx);
-    return moveUtilities.size();
+    return moveUtilities.size() == 0;
 }
 
 size_t TreeNode::getNumMoves() { 
