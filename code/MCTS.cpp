@@ -90,17 +90,17 @@ void *MCTS::getMoveHelper(void *arg) {
 // perform one iteration of the MCTS algorithm starting from the given node
 float MCTS::MCTSIteration(Board &board, Player playerID, Player enemyID,
                           TreeNode &node, workerArg *groupInfo) {
-  printf("starting MCTSIteration...\n");
+  // printf("starting MCTSIteration...\n");
   if (node.isLeaf()) {
     return performPlayouts(board, playerID, enemyID, groupInfo);
   }
-  printf("after node.isleaf() \n");
+  // printf("after node.isleaf()\n");
   int moveIndex;
   TreeNode *child;
   bool childIsLeaf;
 
   std::tie(moveIndex, child, childIsLeaf) = node.getAndMakeMove(*mab, board);
-  printf("index: %d\n", moveIndex);
+  // printf("index: %d\n", moveIndex);
   float result;
   if (childIsLeaf) {
     result = performPlayouts(board, playerID, enemyID, groupInfo);
