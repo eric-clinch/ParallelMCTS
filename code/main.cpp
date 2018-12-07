@@ -178,8 +178,8 @@ int main(int argc, const char* argv[]) {
   _argv = argv + 1;
 
   int msPerMove = 1000 * get_option_int("-t", 1);
-  int threads = get_option_int("-p", 1);
-
+  int playout_threads = get_option_int("-p", 1);
+  int iter_threads = get_option_int("-i", 1);
   bool* seen = new bool[19 * 19];
   zeroFill(seen, 19 * 19);
 
@@ -238,7 +238,7 @@ int main(int argc, const char* argv[]) {
   std::cout << "Test cases passed!\n";
   delete[] seen;
 
-  Strategy* S0 = new MCTS(secondsPerMove, threads);
+  Strategy* S0 = new MCTS(msPerMove, playout_threads, iter_threads);
   Strategy* user = new UserPlayer();
 
   Game* G = new Game(S0, user, 1);

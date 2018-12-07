@@ -6,9 +6,9 @@
 UserPlayer::UserPlayer() {}
 
 const Move UserPlayer::getMove(Board &board, Player playerID, Player enemyID) {
-  std::cout << "USER MOVE\n";
+  // std::cout << "USER MOVE\n";
 
-  const char stone = playerID == P0 ? Board::P0STONE : Board::P1STONE;
+  const char stone = (playerID == P0) ? Board::P0STONE : Board::P1STONE;
   std::cout << board.toString() << std::endl;
   Move result;
   while (true) {
@@ -36,7 +36,6 @@ const Move UserPlayer::getMove(Board &board, Player playerID, Player enemyID) {
       }
     }
   }
-}
   std::cout << "**********************************\n" << std::flush;
   return result;
 }

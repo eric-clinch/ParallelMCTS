@@ -45,7 +45,8 @@ struct playoutJob {
 
 class MCTS : public Strategy {
  public:
-  MCTS(int64_t msPerMove, unsigned int playoutThreads);
+  MCTS(int64_t msPerMove, unsigned int playoutThreads, 
+          unsigned int iterationThreads);
   ~MCTS();
   virtual const Move getMove(Board &board, Player playerID,
           Player enemyID);
@@ -67,7 +68,7 @@ class MCTS : public Strategy {
  private:
   int64_t msPerMove;
   unsigned int playoutThreads;
-
+  unsigned int iterationThreads;
   MAB<Move> *mab;
 
   static std::random_device rd;
