@@ -59,10 +59,13 @@ void Board::seenZeroFill() {
 }
 
 Board Board::getCopy() const {
+  mutex board_lock;
+  board_lock.lock();
   Board result(width, height);
   for (int i = 0; i < height; i++) {
     std::memcpy(&result.board[i][0], &board[i][0], width * sizeof(char));
   }
+  board_lock.unlock();
 
   result.P0Stones = P0Stones;
   result.P1Stones = P1Stones;
@@ -77,10 +80,12 @@ Board Board::getCopy() const {
 }
 
 void Board::copyInto(Board &result) const {
+  mutex board_mtx;
+  board_mtx.lock();
   for (int i = 0; i < height; i++) {
     std::memcpy(&result.board[i][0], &board[i][0], width * sizeof(char));
   }
-
+  board_mtx.unlock();
   result.P0Stones = P0Stones;
   result.P1Stones = P1Stones;
   result.P0Captures = P0Captures;
@@ -126,7 +131,6 @@ std::vector<Move> Board::getMoves() const {
 
 int Board::makeMove(const Move &move, Player playerID) {
   assert(isValid());
-
   if (gameOver) {
     return 0;  // the game is over, moves shouldn't be made
   }

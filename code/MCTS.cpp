@@ -6,51 +6,94 @@
 #include "Tools.h"
 #include "UCB1.h"
 
+// std::mutex groupInfo_mtx;
+// std::mutex mtx;
+
 std::random_device MCTS::rd;
 std::mt19937 MCTS::rng(rd());
 std::uniform_real_distribution<> MCTS::uni(0, 1);
 
-MCTS::MCTS(int64_t msPerMove, unsigned int playoutThreads)
+MCTS::MCTS(int64_t msPerMove, unsigned int playoutThreads, 
+        unsigned int iterationThreads)
     : msPerMove(msPerMove),
       playoutThreads(playoutThreads),
+      iterationThreads(iterationThreads),
       mab(new UCB1<Move>(2.0)) {}
 
 MCTS::~MCTS() { delete mab; }
 
 const Move MCTS::getMove(Board &board, Player playerID, Player enemyID) {
-  size_t iterations = 0;
-
+  
   TreeNode root(board, playerID, enemyID);
+  mainArg args;
+  args.board = &board;
+  args.playerID = playerID;
+  args.enemyID = enemyID;
+  args.node = &root;
+  args.workerThreads = playoutThreads;
+  args.iterationThreads = iterationThreads;
+  args.ms = msPerMove;
+  args.mctsObj = reinterpret_cast<void *>(this);
+  pthread_t iterationWorkers[iterationThreads - 1];
+  int64_t startTime = Tools::getTime();
+  for (size_t i = 0; i < iterationThreads - 1; i++) {
+      pthread_create(&iterationWorkers[i], NULL, getMoveHelper, 
+              reinterpret_cast<void *>(&args));
+  }
 
-  pthread_t workers[playoutThreads - 1];
+  getMoveHelper(reinterpret_cast<void *>(&args));
+  
+  for (size_t i = 0; i < iterationThreads - 1; i++) {
+    pthread_join(iterationWorkers[i], NULL);
+  }
+  int64_t endTime = Tools::getTime();
+  std::cout << "time elapsed: " << endTime - startTime << "\n";
+  return root.getMostVisited();
+}
+
+void *MCTS::getMoveHelper(void *arg) {
+  size_t iterations = 0;
+  mainArg *iterationArg = reinterpret_cast<mainArg *>(arg);
+  Board *board = iterationArg->board;
+  int playoutThreads = iterationArg->workerThreads;
+  Player playerID = iterationArg->playerID;
+  Player enemyID = iterationArg->enemyID;
+  TreeNode *root = iterationArg->node;
+  int64_t msPerMove = iterationArg->ms;
+  MCTS *mctsObject = reinterpret_cast<MCTS *>(iterationArg->mctsObj);
+
+  pthread_t workers[playoutThreads];
   workerArg groupInfo;
-  groupInfo.workers = playoutThreads - 1;
+  groupInfo.workers = playoutThreads;
   groupInfo.activeCount = 0;
+  groupInfo.winCount = 0;
   groupInfo.barrierFlag = 0;
-
-  for (int i = 0; i < playoutThreads - 1; i++) {
+  for (unsigned int i = 0; i < (unsigned int)playoutThreads; i++) {
     pthread_create(&workers[i], NULL, playoutWorker,
                    reinterpret_cast<void *>(&groupInfo));
   }
-
-  Board boardCopy(board.getWidth(), board.getHeight());
+  Board copyBoard(board->getWidth(), board->getHeight());
   int64_t startTime = Tools::getTime();
-  for (int64_t currentTime = startTime; currentTime - startTime < msPerMove;
-       currentTime = Tools::getTime()) {
-    board.copyInto(boardCopy);
-    MCTSIteration(boardCopy, playerID, enemyID, root, &groupInfo);
+  iterations = 1220; // change iterations if need be
+  /*for (int64_t currentTime = startTime; currentTime - startTime < msPerMove;
+          currentTime = Tools::getTime()) {
+    board->copyInto(copyBoard);
+    mctsObject->MCTSIteration(copyBoard, playerID, enemyID, *root, &groupInfo);
     iterations++;
+  }*/
+  for (unsigned int i = 0; i < iterations; i++) {
+    board->copyInto(copyBoard);
+    mctsObject->MCTSIteration(copyBoard, playerID, enemyID, *root, &groupInfo);
   }
-
+  int64_t endTime = Tools::getTime();
   groupInfo.board = NULL;
   groupInfo.activeCount = 1;
-  for (int i = 0; i < playoutThreads - 1; i++) {
+  for (unsigned int i = 0; i < playoutThreads; i++) {
     pthread_join(workers[i], NULL);
   }
-
-  std::cout << "iterations: " << iterations << "\n";
-
-  return root.getMostVisited();
+  std::cout << "mcts iter time elapsed: " << endTime - startTime << "\n";
+  // std::cout << "iterations: " << iterations << "\n";
+  return NULL;
 }
 
 // perform one iteration of the MCTS algorithm starting from the given node
@@ -59,12 +102,11 @@ float MCTS::MCTSIteration(Board &board, Player playerID, Player enemyID,
   if (node.isLeaf()) {
     return performPlayouts(board, playerID, enemyID, groupInfo);
   }
-
   int moveIndex;
   TreeNode *child;
   bool childIsLeaf;
-  std::tie(moveIndex, child, childIsLeaf) = node.getAndMakeMove(*mab, board);
 
+  std::tie(moveIndex, child, childIsLeaf) = node.getAndMakeMove(*mab, board);
   float result;
   if (childIsLeaf) {
     result = performPlayouts(board, playerID, enemyID, groupInfo);
@@ -72,7 +114,6 @@ float MCTS::MCTSIteration(Board &board, Player playerID, Player enemyID,
     result = 1. - MCTSIteration(board, enemyID, playerID, *child, groupInfo);
   }
   node.updateUtility(moveIndex, result);
-
   return result;
 }
 
@@ -89,21 +130,19 @@ float MCTS::performPlayouts(Board &board, Player playerID, Player enemyID,
   groupInfo->playerID = playerID;
   groupInfo->enemyID = enemyID;
   groupInfo->winCount = 0;
-
   groupInfo->activeCount =
       groupInfo->workers;  // alert all workers to begin playouts
-
   size_t result = playout(&board, playerID, enemyID);
 
   // wait for workers to complete
   while (groupInfo->activeCount > 0)
     ;
-
+  
   groupInfo->barrierFlag = 1 - groupInfo->barrierFlag;
   groupInfo->winCount += result;
+  float winCount = static_cast<float>(groupInfo->winCount);
 
-  return static_cast<float>(groupInfo->winCount) /
-         static_cast<float>(playoutThreads);
+  return winCount / static_cast<float>(playoutThreads);
 }
 
 void *MCTS::parallelPlayout(void *arg) {
@@ -135,7 +174,8 @@ void *MCTS::playoutWorker(void *arg) {
 
     groupInfo->activeCount.fetch_sub(
         1);  // alert the master that we are complete
-    size_t temp(groupInfo->activeCount);
+    
+    // size_t temp(groupInfo->activeCount);
 
     while (groupInfo->barrierFlag == flagSense)
       ;  // wait for all other workers to complete

@@ -43,12 +43,67 @@ int main(int argc, const char* argv[]) {
   _argv = argv + 1;
 
   int msPerMove = 1000 * get_option_int("-t", 1);
-  int threads = get_option_int("-p", 1);
+  int playout_threads = get_option_int("-p", 1);
+  int iter_threads = get_option_int("-i", 1);
+  bool* seen = new bool[19 * 19];
+  zeroFill(seen, 19 * 19);
 
-  BoardTest::test();
+  Board board0 = test0();
+  bool answer = board0.capture(1, 1, 'B', 'W', seen, 0);
+  assert(answer == false);
 
-  Strategy* S0 = new MCTS(msPerMove, threads);
-  Strategy* S1 = new MCTS(msPerMove, threads);
+  // std::cout << board0.toString();
+  Move move(2, 1);
+
+  board0.makeMove(move, P0);
+  // std::cout << board0.toString();
+
+  zeroFill(seen, 19 * 19);
+  Board board1 = test1();
+  answer = board1.capture(1, 1, 'B', 'W', seen, 0);
+  assert(answer == true);
+  assert(1 == board1.removeStones(1, 1, 'B'));
+
+  zeroFill(seen, 19 * 19);
+  Board board2 = test2();
+  answer = board2.capture(1, 1, 'B', 'W', seen, 0);
+  assert(answer == false);
+
+  zeroFill(seen, 19 * 19);
+  Board board3 = test3();
+  answer = board3.capture(1, 1, 'B', 'W', seen, 0);
+  assert(answer == false);
+
+  zeroFill(seen, 19 * 19);
+  Board board4 = test4();
+  answer = board4.capture(2, 2, 'B', 'W', seen, 0);
+  assert(answer == false);
+
+  zeroFill(seen, 19 * 19);
+  Board board5 = test5();
+  answer = board5.capture(0, 0, 'W', 'B', seen, 0);
+  assert(answer == true);
+  assert(3 == board5.removeStones(0, 0, 'W'));
+
+  zeroFill(seen, 19 * 19);
+  Board board6 = test6();
+  answer = board6.capture(0, 0, 'W', 'B', seen, 0);
+  assert(answer == false);
+  zeroFill(seen, 19 * 19);
+  bool answer2 = board6.capture(1, 0, 'B', 'W', seen, 0);
+  assert(answer2 == false);
+  assert(4 == board6.removeStones(0, 0, 'W'));
+  zeroFill(seen, 19 * 19);
+
+  zeroFill(seen, 19 * 19);
+  Board board7 = test7();
+  answer = board7.capture(7, 6, 'W', 'B', seen, 0);
+  assert(answer == true);
+  assert(11 == board7.removeStones(7, 6, 'W'));
+  std::cout << "Test cases passed!\n";
+  delete[] seen;
+
+  Strategy* S0 = new MCTS(msPerMove, playout_threads, iter_threads);
   Strategy* user = new UserPlayer();
 
   Game* G = new Game(S0, user, 1);
@@ -56,7 +111,7 @@ int main(int argc, const char* argv[]) {
   std::cout << "S0 won " << s0_wins << std::endl;
 
   delete S0;
-  delete S1;
+  // delete S1;
 
   return 0;
 }

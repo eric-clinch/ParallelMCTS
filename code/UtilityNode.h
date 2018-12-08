@@ -30,6 +30,7 @@ class UtilityNode {
     totalUtility += trialUtility;
     numTrials += 1;
   }
+
 };
 
 #endif
