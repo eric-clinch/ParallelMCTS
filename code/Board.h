@@ -32,7 +32,8 @@ class Board {
   virtual void seenZeroFill();
 
   virtual bool gameIsOver() const;
-  virtual unsigned int playerScore(Player playerID) const;
+  virtual unsigned int playerScore(Player playerID);
+  virtual Player getWinner();
 
   virtual inline int getWidth() const;
   virtual inline int getHeight() const;
@@ -44,7 +45,7 @@ class Board {
   virtual bool capture(int i, int j, char stone, char enemyStone, int iter);
   virtual int removeStones(int x, int y, char stone);
 
-  virtual std::string toString() const;
+  virtual std::string toString();
   virtual void update(int i, int j, char stone);
 
   friend class BoardTest;
@@ -56,6 +57,9 @@ class Board {
 
  private:
   virtual unsigned int stoneCount(char stone) const;
+  virtual std::pair<unsigned int, unsigned int> getTerritories();
+  virtual std::pair<Player, unsigned int> floodFillTerritories(int row,
+                                                               int col);
   bool isValid() const;
 
  private:
@@ -68,6 +72,9 @@ class Board {
 
   size_t P0Captures;  // the number of stones that P0 has captured
   size_t P1Captures;  // the number of stones that P1 has captured
+
+  bool lastMovePassed;
+  bool gameOver;
 };
 
 #endif

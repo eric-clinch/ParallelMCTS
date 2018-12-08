@@ -11,12 +11,6 @@ class BoardTest {
     bool answer = board0.capture(1, 1, 'B', 'W', 0);
     assert(answer == false);
 
-    std::cout << board0.toString();
-    Move move(2, 1);
-
-    board0.makeMove(move, P0);
-    std::cout << board0.toString();
-
     Board board1 = test1();
     board1.seenZeroFill();
     answer = board1.capture(1, 1, 'B', 'W', 0);
@@ -45,6 +39,8 @@ class BoardTest {
     assert(3 == board5.removeStones(0, 0, 'W'));
 
     Board board6 = test6();
+    // std::cout << board6.toString();
+
     board6.seenZeroFill();
     answer = board6.capture(0, 0, 'W', 'B', 0);
     assert(answer == false);
@@ -191,8 +187,6 @@ class BoardTest {
     board.update(10, 6, 'B');
     return board;
   }
-
-
 };
 
 #endif  // BOARDTEST_H__k

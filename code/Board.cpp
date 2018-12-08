@@ -1,17 +1,16 @@
 #include "Board.h"
-#include "BoardTest.h"
 #include <assert.h>
 #include <cstring>
 #include <sstream>
+#include <stack>
 #include <string>
+#include "BoardTest.h"
 
 const char Board::P0STONE = 'W';
 const char Board::P1STONE = 'B';
 const char Board::BLANK = '-';
 
-Board::Board() {
-  width = 19;
-  height = 19;
+Board::Board() : width(19), height(19), lastMovePassed(false), gameOver(false) {
   board = new char *[height];
   for (int i = 0; i < height; i++) {
     board[i] = new char[width];
@@ -28,9 +27,8 @@ Board::Board() {
   P1Captures = 0;
 }
 
-Board::Board(int w, int h) {
-  width = w;
-  height = h;
+Board::Board(int w, int h)
+    : width(w), height(h), lastMovePassed(false), gameOver(false) {
   board = new char *[height];
   for (int i = 0; i < height; i++) {
     board[i] = new char[width];
@@ -52,6 +50,8 @@ Board::~Board() {
     delete[] board[row];
   }
   delete[] board;
+
+  delete[] seenGrid;
 }
 
 void Board::seenZeroFill() {
@@ -69,6 +69,9 @@ Board Board::getCopy() const {
   result.P0Captures = P0Captures;
   result.P1Captures = P1Captures;
 
+  result.lastMovePassed = lastMovePassed;
+  result.gameOver = gameOver;
+
   assert(result.isValid());
   return result;
 }
@@ -83,11 +86,15 @@ void Board::copyInto(Board &result) const {
   result.P0Captures = P0Captures;
   result.P1Captures = P1Captures;
 
+  result.lastMovePassed = lastMovePassed;
+  result.gameOver = gameOver;
+
   assert(result.isValid());
 }
 
 inline bool Board::gameIsOver() const {
-  return (P0Stones == width * height) || (P1Stones == width * height);
+  return gameOver || (P0Stones == width * height) ||
+         (P1Stones == width * height);
 }
 
 inline int Board::getWidth() const { return width; }
@@ -95,14 +102,17 @@ inline int Board::getWidth() const { return width; }
 inline int Board::getHeight() const { return height; }
 
 bool Board::isLegal(const Move &move, Player playerID) const {
+  if (move.isPass()) {
+    return true;  // the pass move is always legal
+  }
   int row = move.getRow();
   int col = move.getCol();
-  if (board[row][col] != BLANK) return false;
-  return true;
+  return board[row][col] == BLANK;
 }
 
 std::vector<Move> Board::getMoves() const {
   std::vector<Move> result;
+  result.push_back(Move());  // add the pass move
   for (int row = 0; row < height; row++) {
     for (int col = 0; col < width; col++) {
       if (board[row][col] == BLANK) {
@@ -116,6 +126,22 @@ std::vector<Move> Board::getMoves() const {
 
 int Board::makeMove(const Move &move, Player playerID) {
   assert(isValid());
+
+  if (gameOver) {
+    return 0;  // the game is over, moves shouldn't be made
+  }
+
+  if (move.isPass()) {
+    if (lastMovePassed) {
+      gameOver =
+          true;  // both players passed consecutively, so the game is over
+    } else {
+      lastMovePassed = true;
+    }
+    return 0;
+  } else {
+    lastMovePassed = false;  // this is not a pass move
+  }
 
   char stone;
   char enemyStone;
@@ -232,9 +258,22 @@ int Board::removeStones(int row, int col, char stone) {
   return new_count;
 }
 
-unsigned int Board::playerScore(Player playerID) const {
-  char playerStone = playerID == P0 ? P0STONE : P1STONE;
-  return playerID == P0 ? P0Stones + P0Captures : P1Stones + P1Captures;
+unsigned int Board::playerScore(Player playerID) {
+  unsigned int score;
+  std::pair<unsigned int, unsigned int> territories = getTerritories();
+  if (playerID == P0) {
+    score = territories.first + P0Stones + P0Captures;
+  } else {
+    score = territories.second + P1Stones + P1Captures;
+  }
+
+  return score;
+}
+
+Player Board::getWinner() {
+  unsigned int P0Score = playerScore(P0);
+  unsigned int P1Score = playerScore(P1);
+  return P0Score > P1Score ? P0 : P1;
 }
 
 unsigned int Board::stoneCount(char stone) const {
@@ -247,6 +286,85 @@ unsigned int Board::stoneCount(char stone) const {
   return count;
 }
 
+std::pair<unsigned int, unsigned int> Board::getTerritories() {
+  seenZeroFill();
+
+  unsigned int P0Territory = 0;
+  unsigned int P1Territory = 0;
+
+  for (int row = 0; row < height; row++) {
+    for (int col = 0; col < width; col++) {
+      if (!seenGrid[row * width + col] && board[row][col] == BLANK) {
+        std::pair<Player, unsigned int> player_territory =
+            floodFillTerritories(row, col);
+        Player player = player_territory.first;
+        unsigned int territory = player_territory.second;
+        if (player == P0) {
+          P0Territory += territory;
+        } else {
+          P1Territory += territory;
+        }
+      }
+    }
+  }
+
+  return std::pair<unsigned int, unsigned int>(P0Territory, P1Territory);
+}
+
+// given a coordinate on the board, runs flood fill from that location to
+// determine what "territory" that cell falls in. if only one player's stones
+// are seen during this process, then that player controls this territory. In
+// that case it returns the pair (P, T) where P is the player that controls the
+// territory and T is the size of the territory. If neither player controls the
+// territory, it simply returns (P0, 0).
+std::pair<Player, unsigned int> Board::floodFillTerritories(int row, int col) {
+  std::stack<std::pair<int, int>> cellStack;
+  cellStack.push(std::pair<int, int>(row, col));
+  seenGrid[row * width + col] = true;
+
+  unsigned int territory = 0;
+  bool seenP0 = false;
+  bool seenP1 = false;
+
+  std::pair<int, int> directions[] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+
+  while (!cellStack.empty()) {
+    territory++;
+
+    std::pair<int, int> row_col = cellStack.top();
+    cellStack.pop();
+    row = row_col.first;
+    col = row_col.second;
+
+    for (std::pair<int, int> direction : directions) {
+      int newRow = row + direction.first;
+      int newCol = col + direction.second;
+
+      if (0 <= newRow && newRow < height && 0 <= newCol && newCol < width) {
+        if (board[newRow][newCol] == P0STONE) {
+          seenP0 = true;
+        } else if (board[newRow][newCol] == P1STONE) {
+          seenP1 = true;
+        } else if (!seenGrid[newRow * width + newCol]) {
+          seenGrid[newRow * width + newCol] = true;
+          cellStack.push(std::pair<int, int>(newRow, newCol));
+        }
+      }
+    }
+  }
+
+  if (seenP0 && !seenP1) {
+    return std::pair<Player, unsigned int>(
+        P0, territory);  // P0 controls this territory
+  } else if (seenP1 && !seenP0) {
+    return std::pair<Player, unsigned int>(
+        P1, territory);  // P1 controls this territory
+  } else {
+    return std::pair<Player, unsigned int>(
+        P0, 0);  // neither player controls this territory
+  }
+}
+
 void Board::update(int row, int col, char stone) {
   board[row][col] = stone;
   if (stone == P0STONE) {
@@ -256,7 +374,7 @@ void Board::update(int row, int col, char stone) {
   }
 }
 
-std::string Board::toString() const {
+std::string Board::toString() {
   ostringstream stringStream;
   for (int row = 0; row < height; row++) {
     for (int col = 0; col < width; col++) {
@@ -264,7 +382,17 @@ std::string Board::toString() const {
     }
     stringStream << "\n";
   }
-  stringStream << "\n";
+
+  std::pair<unsigned int, unsigned int> territories = getTerritories();
+  stringStream << P0STONE << "'s territory: " << territories.first << ", ";
+  stringStream << P1STONE << "'s territory: " << territories.second
+               << std::endl;
+
+  stringStream << P0STONE << "'s captures: " << P0Captures << ", ";
+  stringStream << P1STONE << "'s captures: " << P1Captures << std::endl;
+
+  stringStream << std::endl;
+
   return stringStream.str();
 }
 

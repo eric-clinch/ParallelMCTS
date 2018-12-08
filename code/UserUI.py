@@ -12,7 +12,7 @@ if (len(sys.argv) > 2):
 
 def cleanLine(line):
     line = str(line)
-    line = line[2:-3] # strip irrelevant characters:w
+    line = line[2:-3] # strip irrelevant characters
     return line.strip()
 
 #taken from http://www.cs.cmu.edu/~112/notes/notes-graphics.html
@@ -36,9 +36,15 @@ def init(data):
 
     data.backgroundColor = rgbString(219, 190, 122)
     data.margin = 30
+    data.botMargin = 20
     data.cellWidth = (data.width - 2 * data.margin) / data.boardLen
-    data.cellHeight = (data.height - 2 * data.margin) / data.boardLen
+    data.cellHeight = (data.height - data.botMargin - 2 * data.margin) / data.boardLen
     data.circleMargin = 2
+
+    data.BTerritory = 0
+    data.BCaptures = 0
+    data.WTerritory = 0
+    data.WCaptures = 0
 
 def mousePressed(event, data):
     row = int((event.y - data.margin) // data.cellHeight)
@@ -58,12 +64,31 @@ def parseBoard(data):
     line = cleanLine(data.process.stdout.readline())
     data.turn = line[0]
     assert(data.turn == 'B' or data.turn == 'W')
+
+    # parse board
     for row in range(data.boardLen):
         line = cleanLine(data.process.stdout.readline())
         cells = line.split(' ')
         assert(len(cells) == data.boardLen)
         for col in range(data.boardLen):
             data.board[row][col] = cells[col]
+
+    # parse territory
+    line = cleanLine(data.process.stdout.readline())
+    lineParts = line.split(",")
+    words = lineParts[0].split(" ")
+    data.WTerritory = int(words[-1])
+    words = lineParts[1].split(" ")
+    data.BTerritory = int(words[-1])
+
+    # parse captures
+    line = cleanLine(data.process.stdout.readline())
+    lineParts = line.split(",")
+    words = lineParts[0].split(" ")
+    data.WCaptures = int(words[-1])
+    words = lineParts[1].split(" ")
+    data.BCaptures = int(words[-1])
+
     line = ""
     while('Move' not in line):
         line = cleanLine(data.process.stdout.readline())
@@ -93,12 +118,13 @@ def timerFired(data):
 def redrawAll(canvas, data):
     canvas.create_rectangle(0, 0, data.width, data.height,
                             fill=data.backgroundColor)
+
+    top = data.margin
+    bot = top + data.cellHeight
     for row in range(data.boardLen):
         for col in range(data.boardLen):
             left = data.margin + data.cellWidth * col
             right = left + data.cellWidth
-            top = data.margin + data.cellHeight * row
-            bot = top + data.cellWidth
             if (row < data.boardLen - 1 and col < data.boardLen - 1):
                 canvas.create_rectangle(left + data.cellWidth / 2, 
                     top + data.cellHeight / 2, right + data.cellWidth / 2, 
@@ -112,6 +138,17 @@ def redrawAll(canvas, data):
                 canvas.create_oval(left + data.circleMargin, 
                     top + data.circleMargin, right - data.circleMargin, 
                     bot - data.circleMargin, fill=color)
+        top = bot
+        bot += data.cellHeight
+
+    canvas.create_text(data.margin, data.height - (data.margin + data.botMargin) / 3, 
+                       text = "W territory: %d" % data.WTerritory, anchor=SW)
+    canvas.create_text(data.width / 2, data.height - (data.margin + data.botMargin) / 3, 
+                       text = "B territory: %d" % data.BTerritory, anchor=SW)
+    canvas.create_text(data.margin, data.height - 2 * (data.margin + data.botMargin) / 3, 
+                       text = "W captures: %d" % data.WCaptures, anchor=SW)
+    canvas.create_text(data.width / 2, data.height - 2 * (data.margin + data.botMargin) / 3, 
+                       text = "B captures: %d" % data.BCaptures, anchor=SW)
 
     if data.waitingOnMove:
         canvas.create_text(data.width / 2, data.margin / 2, text="Your Turn")

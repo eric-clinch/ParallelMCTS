@@ -51,7 +51,7 @@ int main(int argc, const char* argv[]) {
   Strategy* S1 = new MCTS(msPerMove, threads);
   Strategy* user = new UserPlayer();
 
-  Game* G = new Game(S0, S1, 1);
+  Game* G = new Game(S0, user, 1);
   int s0_wins = G->runGame();
   std::cout << "S0 won " << s0_wins << std::endl;
 
