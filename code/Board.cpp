@@ -129,6 +129,34 @@ std::vector<Move> Board::getMoves() const {
   return result;
 }
 
+bool Board::notSuicide(Player playerID, int row, int col) const {
+  Board temp(width, height);
+  Move m(row, col);
+  temp.makeMove(m, playerID);
+  // check if there's a move that can cause capture!
+  return false;
+}
+
+std::vector<Move> Board::getSmartMoves(Player playerID, Player enemyID) {
+  std::vector<Move> result;
+  result.push_back(Move());  // add the pass move
+  for (int row = 0; row < height; row++) {
+    for (int col = 0; col < width; col++) {
+      if (board[row][col] == BLANK) {
+        std::pair<Player, unsigned int> player_terr = 
+            floodFillTerritories(row, col);
+        Player p = player_terr.first;
+        unsigned int terr = player_terr.second;
+        if (terr == 0 || (p == playerID && terr > 0) || notSuicide(row, col)) {
+          result.push_back(Move(row, col));
+        }
+      }
+    }
+  }
+  return result;
+}
+
+
 int Board::makeMove(const Move &move, Player playerID) {
   assert(isValid());
   if (gameOver) {

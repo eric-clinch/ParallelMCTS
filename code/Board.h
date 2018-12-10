@@ -42,6 +42,7 @@ class Board {
   virtual bool isLegal(const Move &move, Player playerID) const;
 
   virtual std::vector<Move> getMoves() const;
+  virtual std::vector<Move> getSmartMoves(Player playerID, Player enemyID);
   virtual int makeMove(const Move &move, Player playerID);
   virtual bool capture(int i, int j, char stone, char enemyStone, int iter);
   virtual int removeStones(int x, int y, char stone);
@@ -62,7 +63,7 @@ class Board {
   virtual std::pair<Player, unsigned int> floodFillTerritories(int row,
                                                                int col);
   bool isValid() const;
-
+  bool notSuicide(Player playerID, int row, int col) const;
  private:
   int width, height;
   char **board;

@@ -191,7 +191,8 @@ int MCTS::playout(Board *originalBoard, Player playerID, Player enemyID) {
   size_t iters = 0;
   while (!board.gameIsOver() && iters < 300) {
     iters++;
-    std::vector<Move> moves(board.getMoves());
+    std::vector<Move> moves(board.getSmartMoves(playerID, enemyID));
+    // std::vector<Move> moves(board.getMoves());
     if (moves.size() == 0) {
       break;
     }
