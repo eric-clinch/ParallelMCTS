@@ -68,8 +68,7 @@ def parseBoard(data):
     # parse board
     board = []
     line = cleanLine(data.process.stdout.readline())
-    while(len(line) > 0):
-        print(line)
+    while(',' not in line):
         row = line.split(' ')
         assert(len(board) == 0 or len(row) == len(board[0]))
         board.append(row)
@@ -82,8 +81,6 @@ def parseBoard(data):
     data.cellHeight = (data.height - data.botMargin - 2 * data.margin) / data.boardLen
 
     # parse territory
-    print(line)
-    line = cleanLine(data.process.stdout.readline())
     lineParts = line.split(",")
     words = lineParts[0].split(" ")
     data.WTerritory = int(words[-1])
