@@ -32,22 +32,40 @@ class Player(object):
         p1.rating += update
         p2.rating -= update
 
-import random
 
-numPlayers = 8
-skills = [10 * i for i in range(1, numPlayers + 1)]
-players = [Player() for _ in range(numPlayers)]
-players_skills = list(zip(players, skills))
+# returns a list of (winner, loser) pairs representing the matches played,
+# where the winner and loser are represented by their names as strings
+def getMatchHistory(fileName):
+    f = open(fileName)
+    s = f.read()
+    f.close()
 
-games = 1000
-for _ in range(games):
-    p1, p1Skill = random.choice(players_skills)
-    p2, p2Skill = random.choice(players_skills)
+    lines = s.splitlines()
+    lines = list(filter(lambda x: " defeated " in x, lines))
+    matches = list(map(lambda x: tuple(x.split(" defeated ")), lines))
+    return matches
 
-    matchResult = (1 if random.random() * (p1Skill + p2Skill) < p1Skill 
-                    else 0)
-    Player.updateRatings(p1, p2, matchResult)
+# returns a sorted list of strings representing the names of the players
+# in the given match history
+def getPlayerNames(matchHistory):
+    result = set()
+    for p1, p2 in matchHistory:
+        result.add(p1)
+        result.add(p2)
+    result = list(result)
+    result.sort()
+    return result
 
-for player, skill in players_skills:
-    print(player.rating, skill)
+
+matchHistory = getMatchHistory("tournament.txt")
+print("%d matches played" % len(matchHistory))
+playerNames = getPlayerNames(matchHistory)
+playerDict = {name : Player() for name in playerNames}
+
+for match in matchHistory:
+    winner, loser = match
+    Player.updateRatings(playerDict[winner], playerDict[loser], 1)
+
+for playerName in playerNames:
+    print(playerName, playerDict[playerName].rating)
 
