@@ -66,14 +66,23 @@ def parseBoard(data):
     assert(data.turn == 'B' or data.turn == 'W')
 
     # parse board
-    for row in range(data.boardLen):
+    board = []
+    line = cleanLine(data.process.stdout.readline())
+    while(len(line) > 0):
+        print(line)
+        row = line.split(' ')
+        assert(len(board) == 0 or len(row) == len(board[0]))
+        board.append(row)
+
         line = cleanLine(data.process.stdout.readline())
-        cells = line.split(' ')
-        assert(len(cells) == data.boardLen)
-        for col in range(data.boardLen):
-            data.board[row][col] = cells[col]
+    data.board = board
+    assert(len(data.board) == len(data.board[0])) # the board should be square
+    data.boardLen = len(board)
+    data.cellWidth = (data.width - 2 * data.margin) / data.boardLen
+    data.cellHeight = (data.height - data.botMargin - 2 * data.margin) / data.boardLen
 
     # parse territory
+    print(line)
     line = cleanLine(data.process.stdout.readline())
     lineParts = line.split(",")
     words = lineParts[0].split(" ")
