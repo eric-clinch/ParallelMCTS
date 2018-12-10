@@ -47,16 +47,21 @@ int main(int argc, const char* argv[]) {
 
   BoardTest::test();
 
-  Strategy* S0 = new MCTS(msPerMove, threads);
-  Strategy* S1 = new MCTS(msPerMove, threads);
+  Strategy* S0 = new MCTS(msPerMove, 1);
+  Strategy* S1 = new MCTS(msPerMove, 2);
+  Strategy* S2 = new MCTS(msPerMove, 3);
+  std::vector<Strategy*> strategies({S0, S1, S2});
+
   Strategy* user = new UserPlayer();
 
-  Game* G = new Game(S0, user, 1);
-  int s0_wins = G->runGame();
-  std::cout << "S0 won " << s0_wins << std::endl;
+  // s0_wins = Game::runGame(S0, S1);
+  // std::cout << "S0 won " << s0_wins << std::endl;
+
+  Game::runTournament(strategies, 9, 81, -1);
 
   delete S0;
   delete S1;
+  delete S2;
 
   return 0;
 }
