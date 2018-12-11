@@ -19,37 +19,27 @@ struct workerArg {
   volatile std::atomic<size_t> activeCount;
   std::atomic<size_t> winCount;
   volatile char barrierFlag;  // sense-reversing flag
-  // TreeNode *node;
 };
 
-// for the purposes of MCTS parallelization
+// for the purposes of iteration parallelization
 struct mainArg {
   void *mctsObj;
-  Board *board;
+  const Board *board;
   Player playerID;
   Player enemyID;
   TreeNode *node;
   unsigned int workerThreads;
   unsigned int iterationThreads;
   int64_t ms;
-  // int id;
-  // struct workerArg *nestedArgs;
-};
-// end
-
-struct playoutJob {
-  Board *board;
-  Player playerID;
-  Player enemyID;
 };
 
 class MCTS : public Strategy {
  public:
-  MCTS(int64_t msPerMove, unsigned int playoutThreads, 
-          unsigned int iterationThreads);
+  MCTS(int64_t msPerMove, unsigned int playoutThreads,
+       unsigned int iterationThreads);
   ~MCTS();
-  virtual const Move getMove(Board &board, Player playerID,
-          Player enemyID);
+  virtual const Move getMove(const Board &board, Player playerID,
+                             Player enemyID);
 
  private:
   // perform one iteration of the MCTS algorithm starting from the given node
@@ -61,7 +51,6 @@ class MCTS : public Strategy {
   float performPlayouts(Board &board, Player playerID, Player enemyID,
                         workerArg *groupInfo);
   static int playout(Board *board, Player playerID, Player enemyID);
-  static void *parallelPlayout(void *arg);
   static void *playoutWorker(void *arg);
   static const Move sampleMove(std::vector<Move> &moves);
 

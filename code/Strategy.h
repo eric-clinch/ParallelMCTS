@@ -7,7 +7,8 @@
 class Strategy {
  public:
   virtual ~Strategy() {}
-  virtual const Move getMove(Board &board, Player playerID, Player enemyID) = 0;
+  virtual const Move getMove(const Board &board, Player playerID,
+                             Player enemyID) = 0;
 
   virtual string toString() { return "Strategy"; }
 };

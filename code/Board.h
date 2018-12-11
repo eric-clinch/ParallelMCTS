@@ -7,8 +7,8 @@
 #include <assert.h>
 #include <math.h>
 #include <iostream>
-#include <vector>
 #include <mutex>
+#include <vector>
 #include "Move.h"
 
 using namespace std;
@@ -64,6 +64,7 @@ class Board {
                                                                int col);
   bool isValid() const;
   bool notSuicide(Player playerID, int row, int col) const;
+
  private:
   int width, height;
   char **board;

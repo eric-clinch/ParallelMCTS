@@ -143,11 +143,12 @@ std::vector<Move> Board::getSmartMoves(Player playerID, Player enemyID) {
   for (int row = 0; row < height; row++) {
     for (int col = 0; col < width; col++) {
       if (board[row][col] == BLANK) {
-        std::pair<Player, unsigned int> player_terr = 
+        std::pair<Player, unsigned int> player_terr =
             floodFillTerritories(row, col);
         Player p = player_terr.first;
         unsigned int terr = player_terr.second;
-        if (terr == 0 || (p == playerID && terr > 0) || notSuicide(row, col)) {
+        if (terr == 0 || (p == playerID && terr > 0) ||
+            notSuicide(playerID, row, col)) {
           result.push_back(Move(row, col));
         }
       }
@@ -155,7 +156,6 @@ std::vector<Move> Board::getSmartMoves(Player playerID, Player enemyID) {
   }
   return result;
 }
-
 
 int Board::makeMove(const Move &move, Player playerID) {
   assert(isValid());

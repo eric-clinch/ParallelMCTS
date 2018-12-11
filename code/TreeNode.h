@@ -1,9 +1,9 @@
 #ifndef TREENODE_H__
 #define TREENODE_H__
 
+#include <mutex>
 #include <tuple>
 #include <vector>
-#include <mutex>
 #include "Board.h"
 #include "MAB.h"
 #include "Move.h"
@@ -34,7 +34,7 @@ class TreeNode {
     return s;
   }
 
-const bool isAvailable(Board &board, Move move);
+  const bool isAvailable(int moveIndex);
 
  private:
   Player playerID;
@@ -42,8 +42,8 @@ const bool isAvailable(Board &board, Move move);
 
   std::vector<UtilityNode<Move>> moveUtilities;
   std::vector<TreeNode *> children;
-  //for varying MCTSIteration selection (bool vector that says if something is
-  //available
+  // for varying MCTSIteration selection (bool vector that says if something is
+  // available)
   std::vector<bool> movesAvailable;
   mutable std::mutex node_mtx;
   size_t visits;

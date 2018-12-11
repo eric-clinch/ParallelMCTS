@@ -3,22 +3,16 @@
 
 TreeNode::TreeNode(const Board &board, Player playerID, Player enemyID)
     : playerID(playerID), enemyID(enemyID), visits(0) {
-  
-  std::lock_guard<std::mutex> g(node_mtx);       
-  
+  std::lock_guard<std::mutex> g(node_mtx);
+
   std::vector<Move> moves = board.getMoves();
   for (Move move : moves) {
     moveUtilities.push_back(UtilityNode<Move>(move));
     children.push_back(NULL);
   }
-  
-  // creating array of moves that are 'available'
-  std::vector<bool> movesAvailable;
-  for (int i = 0; i < board.getWidth() * board.getHeight(); i++) {
-    movesAvailable.push_back(false);
-  }
-  for (Move move: moves) {
-    movesAvailable[move.getRow() * board.getWidth() + move.getCol()] = true;
+
+  for (Move move : moves) {
+    movesAvailable.push_back(true);
   }
 }
 
@@ -37,7 +31,6 @@ std::tuple<int, TreeNode *, bool> TreeNode::getAndMakeMove(MAB<Move> &mab,
   Move move = moveUtilities[moveIndex].object;
   board.makeMove(move, playerID);
   bool isLeaf = false;
-  // std::lock_guard<std::mutex> g(node_mtx);
 
   if (children[moveIndex] == NULL) {
     children[moveIndex] = new TreeNode(board, enemyID, playerID);
@@ -71,18 +64,16 @@ const Move TreeNode::getMostVisited() {
   return *result;
 }
 
-bool TreeNode::isLeaf() { 
-    std::lock_guard<std::mutex> g(node_mtx);
-    return moveUtilities.size() == 0;
-}
-
-size_t TreeNode::getNumMoves() { 
+bool TreeNode::isLeaf() {
   std::lock_guard<std::mutex> g(node_mtx);
-  return moveUtilities.size(); 
+  return moveUtilities.size() == 0;
 }
 
-const bool TreeNode::isAvailable(Board &board, Move move) {
-  int r = move.getRow();
-  int c = move.getCol();
-  return movesAvailable[r * board.getWidth() + c];
+size_t TreeNode::getNumMoves() {
+  std::lock_guard<std::mutex> g(node_mtx);
+  return moveUtilities.size();
+}
+
+const bool TreeNode::isAvailable(int moveIndex) {
+  return movesAvailable[moveIndex];
 }
