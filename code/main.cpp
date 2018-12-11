@@ -55,10 +55,10 @@ int main(int argc, const char* argv[]) {
 
   Strategy* user = new UserPlayer();
 
-  // s0_wins = Game::runGame(S0, S1);
+  Game::runGame(S0, user, 9);
   // std::cout << "S0 won " << s0_wins << std::endl;
 
-  Game::runTournament(strategies, 9, 81, -1);
+  // Game::runTournament(strategies, 9, 81, -1);
 
   delete S0;
   delete S1;

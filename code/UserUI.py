@@ -46,6 +46,9 @@ def init(data):
     data.WTerritory = 0
     data.WCaptures = 0
 
+    data.passButton = Button(data.root, text="Pass", relief=GROOVE, command=lambda: makePassMove(data))
+    data.passButtonWidth = 40
+
 def mousePressed(event, data):
     row = int((event.y - data.margin) // data.cellHeight)
     col = int((event.x - data.margin) // data.cellWidth)
@@ -59,6 +62,14 @@ def mousePressed(event, data):
 def keyPressed(event, data):
     # use event.char and event.keysym
     pass
+
+def makePassMove(data):
+    if data.waitingOnMove:
+        data.move = None
+        message = "%d %d\n" % (-1, -1)
+        data.process.stdin.write(message.encode())
+        data.process.stdin.flush()
+        data.waitingOnMove = False
 
 def parseBoard(data):
     line = cleanLine(data.process.stdout.readline())
@@ -117,9 +128,10 @@ def timerFired(data):
             data.waitingOnMove = True
             break
         elif '******' in line:
-            moveRow, moveCol = data.move
-            data.board[moveRow][moveCol] = data.turn
-            break
+            if data.move is not None:
+                moveRow, moveCol = data.move
+                data.board[moveRow][moveCol] = data.turn
+                break
 
 def redrawAll(canvas, data):
     canvas.create_rectangle(0, 0, data.width, data.height,
@@ -156,6 +168,9 @@ def redrawAll(canvas, data):
     canvas.create_text(data.width / 2, data.height - 2 * (data.margin + data.botMargin) / 3, 
                        text = "B captures: %d" % data.BCaptures, anchor=SW)
 
+    canvas.create_window(data.width - data.margin, data.margin / 2,
+                width = data.passButtonWidth, window = data.passButton, anchor=NE)
+
     if data.waitingOnMove:
         canvas.create_text(data.width / 2, data.margin / 2, text="Your Turn")
 
@@ -186,13 +201,18 @@ def run(width=300, height=300):
     data.width = width
     data.height = height
     data.timerDelay = 100 # milliseconds
+
+    # create the root and the canvas
     root = Tk()
     root.resizable(width=False, height=False) # prevents resizing window
-    init(data)
-    # create the root and the canvas
+
+    data.root = root
     canvas = Canvas(root, width=data.width, height=data.height)
     canvas.configure(bd=0, highlightthickness=0)
     canvas.pack()
+
+    init(data)
+
     # set up events
     root.bind("<Button-1>", lambda event:
                             mousePressedWrapper(event, canvas, data))
