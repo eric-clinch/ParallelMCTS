@@ -73,9 +73,14 @@ int main(int argc, const char* argv[]) {
     delete S;
     delete user;
   } else {
-    Strategy* S0 = new MCTS(msPerMove, 1, 1, false, true);
-    Strategy* S1 = new MCTS(msPerMove, 1, 1, false, false);
-    std::vector<Strategy*> strategies({S0, S1});
+
+    std::vector<Strategy*> strategies;
+    for (int threads = 1; threads <= 16; threads *= 2) {
+      Strategy* S0 = new MCTS(msPerMove, 1, threads, true, true);
+      Strategy* S1 = new MCTS(msPerMove, 1, threads, false, true);
+      strategies.push_back(S0);
+      strategies.push_back(S1);
+    }
 
     Game::runTournament(strategies, board_size, board_size * board_size);
 
