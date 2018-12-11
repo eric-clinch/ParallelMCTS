@@ -4,11 +4,14 @@ import sys
 
 SECONDS_PER_MOVE = 1
 THREADS = 1
+BOARD_SIZE = 9
 
 if (len(sys.argv) > 1):
     SECONDS_PER_MOVE = int(sys.argv[1])
 if (len(sys.argv) > 2):
     THREADS = int(sys.argv[2])
+if (len(sys.argv) > 3):
+    BOARD_SIZE = int(sys.argv[3])
 
 def cleanLine(line):
     line = str(line)
@@ -25,8 +28,10 @@ def rgbString(red, green, blue):
 from tkinter import *
 
 def init(data):
-    data.process = subprocess.Popen(['./mcts', '-u', '-t', str(SECONDS_PER_MOVE), '-p', str(THREADS)], stdout=subprocess.PIPE, 
-                                    stdin=subprocess.PIPE)
+    data.process = subprocess.Popen(['./mcts', '-u', '-t', str(SECONDS_PER_MOVE), 
+                                     '-p', str(THREADS), '-s', str(BOARD_SIZE)], 
+                                     stdout=subprocess.PIPE, 
+                                     stdin=subprocess.PIPE)
     data.boardLen = 19
     data.board = [['-'] * data.boardLen for _ in range(data.boardLen)]
     data.gameOver = False

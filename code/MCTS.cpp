@@ -52,7 +52,8 @@ const Move MCTS::getMove(const Board &board, Player playerID, Player enemyID) {
     pthread_join(iterationWorkers[i], NULL);
   }
 
-  std::cout << toString() << " iterations: " << args.iterations << std::endl;
+  std::cout << toString() << " iterations: " << args.iterations
+            << " playouts: " << args.iterations * playoutThreads << std::endl;
 
   float confidence = root.getConfidence();
   if (confidence < 0.1) {
