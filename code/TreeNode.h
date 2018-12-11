@@ -22,6 +22,7 @@ class TreeNode {
   void updateUtility(int moveIndex, float utility);
 
   const Move getMostVisited();
+  float getConfidence();
   bool isLeaf();
 
   size_t getNumMoves();

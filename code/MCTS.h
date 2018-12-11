@@ -17,7 +17,7 @@ struct workerArg {
   size_t workers;
 
   volatile std::atomic<size_t> activeCount;
-  std::atomic<size_t> winCount;
+  volatile std::atomic<size_t> winCount;
   volatile char barrierFlag;  // sense-reversing flag
 };
 
@@ -31,6 +31,7 @@ struct mainArg {
   unsigned int workerThreads;
   unsigned int iterationThreads;
   int64_t ms;
+  volatile std::atomic<size_t> iterations;
 };
 
 class MCTS : public Strategy {
@@ -40,6 +41,8 @@ class MCTS : public Strategy {
   ~MCTS();
   virtual const Move getMove(const Board &board, Player playerID,
                              Player enemyID);
+
+  virtual string toString();
 
  private:
   // perform one iteration of the MCTS algorithm starting from the given node

@@ -19,6 +19,13 @@ MCTS::MCTS(int64_t msPerMove, unsigned int playoutThreads,
 
 MCTS::~MCTS() { delete mab; }
 
+string MCTS::toString() {
+  ostringstream stringStream;
+  stringStream << "MCTS(" << msPerMove << ", " << playoutThreads << ", "
+               << iterationThreads << ")";
+  return stringStream.str();
+}
+
 const Move MCTS::getMove(const Board &board, Player playerID, Player enemyID) {
   TreeNode root(board, playerID, enemyID);
 
@@ -30,6 +37,7 @@ const Move MCTS::getMove(const Board &board, Player playerID, Player enemyID) {
   args.workerThreads = playoutThreads;
   args.iterationThreads = iterationThreads;
   args.ms = msPerMove;
+  args.iterations = 0;
   args.mctsObj = reinterpret_cast<void *>(this);
   pthread_t iterationWorkers[iterationThreads - 1];
   for (size_t i = 0; i < iterationThreads - 1; i++) {
@@ -42,7 +50,17 @@ const Move MCTS::getMove(const Board &board, Player playerID, Player enemyID) {
   for (size_t i = 0; i < iterationThreads - 1; i++) {
     pthread_join(iterationWorkers[i], NULL);
   }
-  return root.getMostVisited();
+
+  std::cout << toString() << " iterations: " << args.iterations << std::endl;
+
+  float confidence = root.getConfidence();
+  if (confidence < 0.1) {
+    // if it is estimated that there is a < 10% chance of winning, concede
+    std::cout << "conceding" << std::endl;
+    return Move();
+  } else {
+    return root.getMostVisited();
+  }
 }
 
 void *MCTS::getMoveHelper(void *arg) {
@@ -82,7 +100,7 @@ void *MCTS::getMoveHelper(void *arg) {
     pthread_join(workers[i], NULL);
   }
 
-  std::cout << "iterations: " << iterations << "\n";
+  iterationArg->iterations.fetch_add(iterations);
   return NULL;
 }
 
@@ -158,8 +176,6 @@ void *MCTS::playoutWorker(void *arg) {
     groupInfo->activeCount.fetch_sub(
         1);  // alert the master that we are complete
 
-    // size_t temp(groupInfo->activeCount);
-
     while (groupInfo->barrierFlag == flagSense) {
     }  // wait for all other workers to complete
     flagSense = 1 - flagSense;
@@ -172,7 +188,8 @@ int MCTS::playout(Board *originalBoard, Player playerID, Player enemyID) {
   Player currentPlayer = playerID;
 
   size_t iters = 0;
-  while (!board.gameIsOver() && iters < 300) {
+  size_t maxIters = board.getWidth() * board.getHeight();
+  while (!board.gameIsOver() && iters < maxIters) {
     iters++;
     // std::vector<Move> moves(board.getSmartMoves(playerID, enemyID));
     std::vector<Move> moves(board.getMoves());

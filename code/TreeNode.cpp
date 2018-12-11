@@ -64,6 +64,23 @@ const Move TreeNode::getMostVisited() {
   return *result;
 }
 
+// returns how confident the AI is that it is in a winning position.
+// Confidence is computed as the win rate of the move with the highest utility
+float TreeNode::getConfidence() {
+  assert(moveUtilities.size() > 0);
+
+  float result = 0.;
+  std::lock_guard<std::mutex> g(node_mtx);
+  for (const UtilityNode<Move> &moveUtility : moveUtilities) {
+    float averageUtility = moveUtility.getAverageUtility();
+    if (averageUtility > result) {
+      result = averageUtility;
+    }
+  }
+
+  return result;
+}
+
 bool TreeNode::isLeaf() {
   std::lock_guard<std::mutex> g(node_mtx);
   return moveUtilities.size() == 0;
