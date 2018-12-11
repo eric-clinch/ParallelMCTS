@@ -5,24 +5,30 @@
 
 UserPlayer::UserPlayer() {}
 
-const Move UserPlayer::getMove(const Board &original, Player playerID,
-                               Player enemyID) {
-  Board board = original.getCopy();
+const Move UserPlayer::getMove(Board &board, Player playerID, Player enemyID) {
+  std::cout << "USER MOVE\n";
 
-  const char stone = (playerID == P0) ? Board::P0STONE : Board::P1STONE;
+  const char stone = playerID == P0 ? Board::P0STONE : Board::P1STONE;
+  std::cout << stone << "'s move" << std::endl;
   std::cout << board.toString() << std::endl;
   Move result;
+
   while (true) {
     std::cout << "Move (row col):\n" << std::flush;
 
     int row, col;
     bool validInput = false;
     if (std::cin >> row) {
-      if (row < 0) {
-        exit(0);
-      }
-
       if (std::cin >> col) {
+        if (row < 0) {
+          if (row == -1 && col == -1) {
+            result = Move();  // the pass move
+            break;
+          } else {
+            exit(0);
+          }
+        }
+
         validInput = true;
         Move move(row, col);
         if (board.isLegal(move, playerID)) {
@@ -37,6 +43,7 @@ const Move UserPlayer::getMove(const Board &original, Player playerID,
       }
     }
   }
+
   std::cout << "**********************************\n" << std::flush;
   return result;
 }
