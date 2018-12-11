@@ -408,8 +408,10 @@ std::pair<Player, unsigned int> Board::floodFillTerritories(int row, int col) {
 // not the area is controlled by the given player
 std::pair<Player, bool> Board::floodFillTerritories(
     int row, int col, std::vector<std::pair<int, int>> &cells) {
-  std::stack<std::pair<int, int>> cellStack;
-  cellStack.push(std::pair<int, int>(row, col));
+  assert(cells.size() == 0);
+  assert(false);
+
+  cells.push_back(std::pair<int, int>(row, col));
 
   seenGrid[row * width + col] = true;
 
@@ -418,12 +420,10 @@ std::pair<Player, bool> Board::floodFillTerritories(
 
   std::pair<int, int> directions[] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
 
-  while (!cellStack.empty()) {
-    std::pair<int, int> row_col = cellStack.top();
-    cellStack.pop();
+  for (int i = 0; i < cells.size(); i++) {
+    std::pair<int, int> row_col = cells[i];
     row = row_col.first;
     col = row_col.second;
-    cells.push_back(std::pair<int, int>(row, col));
 
     for (std::pair<int, int> direction : directions) {
       int newRow = row + direction.first;
@@ -436,7 +436,7 @@ std::pair<Player, bool> Board::floodFillTerritories(
           seenP1 = true;
         } else if (!seenGrid[newRow * width + newCol]) {
           seenGrid[newRow * width + newCol] = true;
-          cellStack.push(std::pair<int, int>(newRow, newCol));
+          cells.push_back(std::pair<int, int>(newRow, newCol));
         }
       }
     }
