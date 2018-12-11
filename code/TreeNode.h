@@ -12,7 +12,8 @@
 
 class TreeNode {
  public:
-  TreeNode(const Board &board, Player playerID, Player enemyID);
+  TreeNode(const Board &board, Player playerID, Player enemyID,
+           bool trackThreads);
 
   ~TreeNode();
 
@@ -35,19 +36,20 @@ class TreeNode {
     return s;
   }
 
-  const bool isAvailable(int moveIndex);
-
  private:
   Player playerID;
   Player enemyID;
 
   std::vector<UtilityNode<Move>> moveUtilities;
   std::vector<TreeNode *> children;
+
   // for varying MCTSIteration selection (bool vector that says if something is
   // available)
-  std::vector<bool> movesAvailable;
+  std::vector<unsigned int> moveThreadCounts;
   mutable std::mutex node_mtx;
   size_t visits;
+
+  bool trackThreads;
 };
 
 #endif  // TREENODE_H__

@@ -11,7 +11,7 @@ class MAB {
   virtual ~MAB() {}
 
   // returns the index of the chosen element
-  virtual int getChoice(const vector<bool> &availMoves,
+  virtual int getChoice(const vector<unsigned int> &moveThreadCounts,
                         const vector<UtilityNode<T>> &nodes, int numTrials) = 0;
   virtual string toString() = 0;
 };

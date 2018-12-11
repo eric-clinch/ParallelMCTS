@@ -10,34 +10,13 @@
 #include "Strategy.h"
 #include "TreeNode.h"
 
-struct workerArg {
-  Board *board;
-  Player playerID;
-  Player enemyID;
-  size_t workers;
-
-  volatile std::atomic<size_t> activeCount;
-  volatile std::atomic<size_t> winCount;
-  volatile char barrierFlag;  // sense-reversing flag
-};
-
-// for the purposes of iteration parallelization
-struct mainArg {
-  void *mctsObj;
-  const Board *board;
-  Player playerID;
-  Player enemyID;
-  TreeNode *node;
-  unsigned int workerThreads;
-  unsigned int iterationThreads;
-  int64_t ms;
-  volatile std::atomic<size_t> iterations;
-};
+struct workerArg;
+struct mainArg;
 
 class MCTS : public Strategy {
  public:
   MCTS(int64_t msPerMove, unsigned int playoutThreads,
-       unsigned int iterationThreads);
+       unsigned int iterationThreads, bool rerouteThreads);
   ~MCTS();
   virtual const Move getMove(const Board &board, Player playerID,
                              Player enemyID);
@@ -62,10 +41,35 @@ class MCTS : public Strategy {
   unsigned int playoutThreads;
   unsigned int iterationThreads;
   MAB<Move> *mab;
+  bool rerouteThreads;
 
   static std::random_device rd;
   static std::mt19937 rng;
   static std::uniform_real_distribution<> uni;
+};
+
+struct workerArg {
+  Board *board;
+  Player playerID;
+  Player enemyID;
+  size_t workers;
+
+  volatile std::atomic<size_t> activeCount;
+  volatile std::atomic<size_t> winCount;
+  volatile char barrierFlag;  // sense-reversing flag
+};
+
+// for the purposes of iteration parallelization
+struct mainArg {
+  MCTS *mcts;
+  const Board *board;
+  Player playerID;
+  Player enemyID;
+  TreeNode *node;
+  unsigned int workerThreads;
+  unsigned int iterationThreads;
+  int64_t ms;
+  volatile std::atomic<size_t> iterations;
 };
 
 #endif  // MCTS_H__

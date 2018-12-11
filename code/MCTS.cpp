@@ -11,23 +11,24 @@ std::mt19937 MCTS::rng(rd());
 std::uniform_real_distribution<> MCTS::uni(0, 1);
 
 MCTS::MCTS(int64_t msPerMove, unsigned int playoutThreads,
-           unsigned int iterationThreads)
+           unsigned int iterationThreads, bool rerouteThreads)
     : msPerMove(msPerMove),
       playoutThreads(playoutThreads),
       iterationThreads(iterationThreads),
-      mab(new UCB1<Move>(2.0)) {}
+      mab(new UCB1<Move>(2.0)),
+      rerouteThreads(rerouteThreads) {}
 
 MCTS::~MCTS() { delete mab; }
 
 string MCTS::toString() {
   ostringstream stringStream;
   stringStream << "MCTS(" << msPerMove << ", " << playoutThreads << ", "
-               << iterationThreads << ")";
+               << iterationThreads << ", " << rerouteThreads << ")";
   return stringStream.str();
 }
 
 const Move MCTS::getMove(const Board &board, Player playerID, Player enemyID) {
-  TreeNode root(board, playerID, enemyID);
+  TreeNode root(board, playerID, enemyID, rerouteThreads);
 
   mainArg args;
   args.board = &board;
@@ -38,7 +39,7 @@ const Move MCTS::getMove(const Board &board, Player playerID, Player enemyID) {
   args.iterationThreads = iterationThreads;
   args.ms = msPerMove;
   args.iterations = 0;
-  args.mctsObj = reinterpret_cast<void *>(this);
+  args.mcts = this;
   pthread_t iterationWorkers[iterationThreads - 1];
   for (size_t i = 0; i < iterationThreads - 1; i++) {
     pthread_create(&iterationWorkers[i], NULL, getMoveHelper,
@@ -72,7 +73,7 @@ void *MCTS::getMoveHelper(void *arg) {
   Player enemyID = iterationArg->enemyID;
   TreeNode *root = iterationArg->node;
   int64_t msPerMove = iterationArg->ms;
-  MCTS *mctsObject = reinterpret_cast<MCTS *>(iterationArg->mctsObj);
+  MCTS *mcts = iterationArg->mcts;
 
   pthread_t workers[playoutThreads - 1];
   workerArg groupInfo;
@@ -90,7 +91,7 @@ void *MCTS::getMoveHelper(void *arg) {
   for (int64_t currentTime = startTime; currentTime - startTime < msPerMove;
        currentTime = Tools::getTime()) {
     board->copyInto(copyBoard);
-    mctsObject->MCTSIteration(copyBoard, playerID, enemyID, *root, &groupInfo);
+    mcts->MCTSIteration(copyBoard, playerID, enemyID, *root, &groupInfo);
     iterations++;
   }
 
