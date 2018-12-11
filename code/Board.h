@@ -62,8 +62,10 @@ class Board {
   virtual std::pair<unsigned int, unsigned int> getTerritories();
   virtual std::pair<Player, unsigned int> floodFillTerritories(int row,
                                                                int col);
+  virtual std::pair<Player, bool> floodFillTerritories(
+      int row, int col, std::vector<std::pair<int, int>> &cells);
+
   bool isValid() const;
-  bool notSuicide(Player playerID, int row, int col) const;
 
  private:
   int width, height;

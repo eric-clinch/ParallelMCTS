@@ -60,7 +60,8 @@ int main(int argc, const char* argv[]) {
   BoardTest::test();
 
   if (against_user) {
-    Strategy* S = new MCTS(msPerMove, playout_threads, iter_threads, false);
+    Strategy* S =
+        new MCTS(msPerMove, playout_threads, iter_threads, false, false);
     Strategy* user = new UserPlayer();
     int result = Game::runGame(S, user, board_size);
     if (result == 0) {
@@ -72,9 +73,8 @@ int main(int argc, const char* argv[]) {
     delete S;
     delete user;
   } else {
-    Strategy* S0 = new MCTS(msPerMove, 1, 8, true);
-    Strategy* S1 = new MCTS(msPerMove, 1, 8, false);
-    // Strategy* S2 = new MCTS(msPerMove, 3, 1);
+    Strategy* S0 = new MCTS(msPerMove, 1, 1, false, true);
+    Strategy* S1 = new MCTS(msPerMove, 1, 1, false, false);
     std::vector<Strategy*> strategies({S0, S1});
 
     Game::runTournament(strategies, board_size, board_size * board_size);

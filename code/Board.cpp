@@ -129,31 +129,36 @@ std::vector<Move> Board::getMoves() const {
   return result;
 }
 
-bool Board::notSuicide(Player playerID, int row, int col) const {
-  Board temp(width, height);
-  Move m(row, col);
-  temp.makeMove(m, playerID);
-  // check if there's a move that can cause capture!
-  return false;
-}
-
 std::vector<Move> Board::getSmartMoves(Player playerID, Player enemyID) {
+  if (P0Stones == 0 || P1Stones == 0) {
+    // this is a bit of a degenerate case. Just return all the legal moves
+    return getMoves();
+  }
+
   std::vector<Move> result;
-  result.push_back(Move());  // add the pass move
+  seenZeroFill();
   for (int row = 0; row < height; row++) {
     for (int col = 0; col < width; col++) {
-      if (board[row][col] == BLANK) {
-        std::pair<Player, unsigned int> player_terr =
-            floodFillTerritories(row, col);
-        Player p = player_terr.first;
-        unsigned int terr = player_terr.second;
-        if (terr == 0 || (p == playerID && terr > 0) ||
-            notSuicide(playerID, row, col)) {
-          result.push_back(Move(row, col));
+      if (board[row][col] == BLANK && !seenGrid[row * height + col]) {
+        std::vector<std::pair<int, int>> territoryCells;
+        std::pair<Player, bool> player_controlled =
+            floodFillTerritories(row, col, territoryCells);
+        Player player = player_controlled.first;
+        bool controlled = player_controlled.second;
+        if (!controlled) {
+          for (const std::pair<int, int> &cell : territoryCells) {
+            result.push_back(Move(cell.first, cell.second));
+          }
         }
       }
     }
   }
+
+  if (result.size() == 0) {
+    // add the pass move if there are no other reasonable moves to make
+    result.push_back(Move());
+  }
+
   return result;
 }
 
@@ -394,6 +399,58 @@ std::pair<Player, unsigned int> Board::floodFillTerritories(int row, int col) {
   } else {
     return std::pair<Player, unsigned int>(
         P0, 0);  // neither player controls this territory
+  }
+}
+
+// same as the floodFillTerritories above, except that it accepts a vector
+// and appends to it every (row, col) pair that is in this territory. Also
+// instead of returning the territory size, returns a bool of whether or
+// not the area is controlled by the given player
+std::pair<Player, bool> Board::floodFillTerritories(
+    int row, int col, std::vector<std::pair<int, int>> &cells) {
+  std::stack<std::pair<int, int>> cellStack;
+  cellStack.push(std::pair<int, int>(row, col));
+
+  seenGrid[row * width + col] = true;
+
+  bool seenP0 = false;
+  bool seenP1 = false;
+
+  std::pair<int, int> directions[] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+
+  while (!cellStack.empty()) {
+    std::pair<int, int> row_col = cellStack.top();
+    cellStack.pop();
+    row = row_col.first;
+    col = row_col.second;
+    cells.push_back(std::pair<int, int>(row, col));
+
+    for (std::pair<int, int> direction : directions) {
+      int newRow = row + direction.first;
+      int newCol = col + direction.second;
+
+      if (0 <= newRow && newRow < height && 0 <= newCol && newCol < width) {
+        if (board[newRow][newCol] == P0STONE) {
+          seenP0 = true;
+        } else if (board[newRow][newCol] == P1STONE) {
+          seenP1 = true;
+        } else if (!seenGrid[newRow * width + newCol]) {
+          seenGrid[newRow * width + newCol] = true;
+          cellStack.push(std::pair<int, int>(newRow, newCol));
+        }
+      }
+    }
+  }
+
+  if (seenP0 && !seenP1) {
+    return std::pair<Player, unsigned int>(P0,
+                                           true);  // P0 controls this territory
+  } else if (seenP1 && !seenP0) {
+    return std::pair<Player, unsigned int>(P1,
+                                           true);  // P1 controls this territory
+  } else {
+    return std::pair<Player, unsigned int>(
+        P0, false);  // neither player controls this territory
   }
 }
 
