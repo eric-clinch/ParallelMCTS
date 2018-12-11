@@ -48,9 +48,9 @@ int main(int argc, const char* argv[]) {
 
   BoardTest::test();
 
-  Strategy* S0 = new MCTS(msPerMove, 1);
-  Strategy* S1 = new MCTS(msPerMove, 2);
-  Strategy* S2 = new MCTS(msPerMove, 3);
+  Strategy* S0 = new MCTS(msPerMove, 1, 1);
+  Strategy* S1 = new MCTS(msPerMove, 2, 1);
+  Strategy* S2 = new MCTS(msPerMove, 3, 1);
   std::vector<Strategy*> strategies({S0, S1, S2});
 
   Strategy* user = new UserPlayer();
