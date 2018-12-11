@@ -25,11 +25,12 @@ def rgbString(red, green, blue):
 from tkinter import *
 
 def init(data):
-    data.process = subprocess.Popen(['./mcts', '-t', str(SECONDS_PER_MOVE), '-p', str(THREADS)], stdout=subprocess.PIPE, 
+    data.process = subprocess.Popen(['./mcts', '-u', '-t', str(SECONDS_PER_MOVE), '-p', str(THREADS)], stdout=subprocess.PIPE, 
                                     stdin=subprocess.PIPE)
     data.boardLen = 19
     data.board = [['-'] * data.boardLen for _ in range(data.boardLen)]
     data.gameOver = False
+    data.userWon = False
     data.turn = None
     data.waitingOnMove = False
     data.move = None
@@ -64,7 +65,7 @@ def keyPressed(event, data):
     pass
 
 def makePassMove(data):
-    if data.waitingOnMove:
+    if data.waitingOnMove and not data.gameOver:
         data.move = None
         message = "%d %d\n" % (-1, -1)
         data.process.stdin.write(message.encode())
@@ -132,6 +133,12 @@ def timerFired(data):
                 moveRow, moveCol = data.move
                 data.board[moveRow][moveCol] = data.turn
                 break
+        elif "USER LOST" in line:
+            data.gameOver = True
+            data.userWon = False
+        elif "USER WON" in line:
+            data.gameOver = True
+            data.userWon = True
 
 def redrawAll(canvas, data):
     canvas.create_rectangle(0, 0, data.width, data.height,
@@ -171,7 +178,10 @@ def redrawAll(canvas, data):
     canvas.create_window(data.width - data.margin, data.margin / 2,
                 width = data.passButtonWidth, window = data.passButton, anchor=NE)
 
-    if data.waitingOnMove:
+    if data.gameOver:
+        message = "YOU WON" if data.userWon else "YOU LOST"
+        canvas.create_text(data.width / 2, data.margin / 2, text=message)
+    elif data.waitingOnMove:
         canvas.create_text(data.width / 2, data.margin / 2, text="Your Turn")
 
 def run(width=300, height=300):

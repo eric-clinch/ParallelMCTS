@@ -5,8 +5,11 @@
 
 UserPlayer::UserPlayer() {}
 
-const Move UserPlayer::getMove(Board &board, Player playerID, Player enemyID) {
+const Move UserPlayer::getMove(const Board &original, Player playerID,
+                               Player enemyID) {
   std::cout << "USER MOVE\n";
+
+  Board board = original.getCopy();
 
   const char stone = playerID == P0 ? Board::P0STONE : Board::P1STONE;
   std::cout << stone << "'s move" << std::endl;

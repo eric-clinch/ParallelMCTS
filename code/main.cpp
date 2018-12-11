@@ -17,25 +17,34 @@ static const char** _argv;
 
 const char* get_option_string(const char* option_name,
                               const char* default_value) {
-  for (int i = _argc - 2; i >= 0; i -= 2) {
+  for (int i = _argc - 2; i >= 0; i -= 1) {
     if (strcmp(_argv[i], option_name) == 0) return _argv[i + 1];
   }
   return default_value;
 }
 
 int get_option_int(const char* option_name, int default_value) {
-  for (int i = _argc - 2; i >= 0; i -= 2) {
+  for (int i = _argc - 2; i >= 0; i -= 1) {
     if (strcmp(_argv[i], option_name) == 0) return atoi(_argv[i + 1]);
   }
   return default_value;
 }
 
 float get_option_float(const char* option_name, float default_value) {
-  for (int i = _argc - 2; i >= 0; i -= 2) {
+  for (int i = _argc - 2; i >= 0; i -= 1) {
     if (strcmp(_argv[i], option_name) == 0)
       return static_cast<float>(atof(_argv[i + 1]));
   }
   return default_value;
+}
+
+bool get_flag(const char* flag_name) {
+  for (int i = _argc - 1; i >= 0; i -= 1) {
+    if (strcmp(_argv[i], flag_name) == 0) {
+      return true;
+    }
+  }
+  return false;
 }
 
 int main(int argc, const char* argv[]) {
@@ -45,24 +54,35 @@ int main(int argc, const char* argv[]) {
   int msPerMove = 1000 * get_option_int("-t", 1);
   int playout_threads = get_option_int("-p", 1);
   int iter_threads = get_option_int("-i", 1);
+  int board_size = get_option_int("-s", 9);
+  bool against_user = get_flag("-u");
 
   BoardTest::test();
 
-  Strategy* S0 = new MCTS(msPerMove, 1, 1);
-  Strategy* S1 = new MCTS(msPerMove, 2, 1);
-  Strategy* S2 = new MCTS(msPerMove, 3, 1);
-  std::vector<Strategy*> strategies({S0, S1, S2});
+  if (against_user) {
+    Strategy* S = new MCTS(msPerMove, playout_threads, iter_threads);
+    Strategy* user = new UserPlayer();
+    int result = Game::runGame(S, user, board_size);
+    if (result == 0) {
+      std::cout << "USER LOST\n";
+    } else {
+      std::cout << "USER WON\n";
+    }
 
-  Strategy* user = new UserPlayer();
+    delete S;
+    delete user;
+  } else {
+    Strategy* S0 = new MCTS(msPerMove, 1, 1);
+    Strategy* S1 = new MCTS(msPerMove, 2, 1);
+    Strategy* S2 = new MCTS(msPerMove, 3, 1);
+    std::vector<Strategy*> strategies({S0, S1, S2});
 
-  // s0_wins = Game::runGame(S0, S1);
-  // std::cout << "S0 won " << s0_wins << std::endl;
+    Game::runTournament(strategies, board_size, board_size * board_size);
 
-  Game::runTournament(strategies, 9, 81, -1);
-
-  delete S0;
-  delete S1;
-  delete S2;
+    for (Strategy* S : strategies) {
+      delete S;
+    }
+  }
 
   return 0;
 }
