@@ -19,11 +19,16 @@ const Move UserPlayer::getMove(Board &board, Player playerID, Player enemyID) {
     int row, col;
     bool validInput = false;
     if (std::cin >> row) {
-      if (row < 0) {
-        exit(0);
-      }
-
       if (std::cin >> col) {
+        if (row < 0) {
+          if (row == -1 && col == -1) {
+            result = Move();  // the pass move
+            break;
+          } else {
+            exit(0);
+          }
+        }
+
         validInput = true;
         Move move(row, col);
         if (board.isLegal(move, playerID)) {
