@@ -129,18 +129,19 @@ std::vector<Move> Board::getMoves() const {
   return result;
 }
 
-std::vector<Move> Board::getSmartMoves(Player playerID, Player enemyID) {
+void Board::getSmartMoves(std::vector<Move> &result) {
   if (P0Stones == 0 || P1Stones == 0) {
     // this is a bit of a degenerate case. Just return all the legal moves
-    return getMoves();
+    result = getMoves();
+    return;
   }
 
-  std::vector<Move> result;
   seenZeroFill();
+
+  std::vector<std::pair<int, int>> territoryCells;
   for (int row = 0; row < height; row++) {
     for (int col = 0; col < width; col++) {
       if (board[row][col] == BLANK && !seenGrid[row * height + col]) {
-        std::vector<std::pair<int, int>> territoryCells;
         std::pair<Player, bool> player_controlled =
             floodFillTerritories(row, col, territoryCells);
         Player player = player_controlled.first;
@@ -150,6 +151,7 @@ std::vector<Move> Board::getSmartMoves(Player playerID, Player enemyID) {
             result.push_back(Move(cell.first, cell.second));
           }
         }
+        territoryCells.clear();
       }
     }
   }
@@ -158,8 +160,6 @@ std::vector<Move> Board::getSmartMoves(Player playerID, Player enemyID) {
     // add the pass move if there are no other reasonable moves to make
     result.push_back(Move());
   }
-
-  return result;
 }
 
 int Board::makeMove(const Move &move, Player playerID) {

@@ -191,14 +191,16 @@ int MCTS::playout(Board *originalBoard, Player playerID, Player enemyID) {
 
   size_t iters = 0;
   size_t maxIters = board.getWidth() * board.getHeight();
+  std::vector<Move> moves;
   while (!board.gameIsOver() && iters < maxIters) {
     iters++;
 
-    std::vector<Move> moves(board.getSmartMoves(playerID, enemyID));
+    board.getSmartMoves(moves);
     if (moves.size() == 0) {
       break;
     }
     const Move randomMove = sampleMove(moves);
+    moves.clear();
     board.makeMove(randomMove, currentPlayer);
 
     currentPlayer = currentPlayer == playerID ? enemyID : playerID;

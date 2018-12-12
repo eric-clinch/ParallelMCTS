@@ -42,7 +42,7 @@ class Board {
   virtual bool isLegal(const Move &move, Player playerID) const;
 
   virtual std::vector<Move> getMoves() const;
-  virtual std::vector<Move> getSmartMoves(Player playerID, Player enemyID);
+  virtual void getSmartMoves(std::vector<Move> &result);
   virtual int makeMove(const Move &move, Player playerID);
   virtual bool capture(int i, int j, char stone, char enemyStone, int iter);
   virtual int removeStones(int x, int y, char stone);
