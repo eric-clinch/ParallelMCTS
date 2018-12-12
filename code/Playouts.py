@@ -1,3 +1,9 @@
+import sys
+
+FILENAME = "tournament.txt"
+
+if (len(sys.argv) > 1):
+    FILENAME = sys.argv[1]
 
 # returns a list of (name, playouts) pairs representing the how many playouts,
 # the given strategy ran
@@ -22,9 +28,7 @@ def getPlayerNames(playouts):
     result.sort()
     return result
 
-filename = "tournament.txt"
-
-playoutsAndNames = getPlayouts(filename)
+playoutsAndNames = getPlayouts(FILENAME)
 playerNames = getPlayerNames(playoutsAndNames)
 
 totalPlayouts = dict()
