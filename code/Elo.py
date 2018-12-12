@@ -7,7 +7,7 @@ class Player(object):
     # Having 100 more elo points should mean you win ~2 times as often
     N = 100 
     WIN_RATIO = 2
-    INIT_RATING = 500
+    INIT_RATING = 400
     K = 20
 
     def __init__(self):
