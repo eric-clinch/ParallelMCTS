@@ -16,7 +16,7 @@ struct mainArg;
 class MCTS : public Strategy {
  public:
   MCTS(int64_t msPerMove, unsigned int playoutThreads,
-       unsigned int iterationThreads, bool rerouteThreads, bool smartPlayouts);
+       unsigned int iterationThreads, bool rerouteThreads);
   ~MCTS();
   virtual const Move getMove(const Board &board, Player playerID,
                              Player enemyID);
@@ -31,8 +31,7 @@ class MCTS : public Strategy {
   // static void *MCTSIterationWorker(void *args);
   float performPlayouts(Board &board, Player playerID, Player enemyID,
                         workerArg *groupInfo);
-  static int playout(Board *board, Player playerID, Player enemyID,
-                     bool smartPlayouts);
+  static int playout(Board *board, Player playerID, Player enemyID);
   static void *playoutWorker(void *arg);
   static const Move sampleMove(std::vector<Move> &moves);
 
@@ -42,7 +41,6 @@ class MCTS : public Strategy {
   unsigned int iterationThreads;
   MAB<Move> *mab;
   bool rerouteThreads;
-  bool smartPlayouts;
 
   static std::random_device rd;
   static std::mt19937 rng;
@@ -54,7 +52,6 @@ struct workerArg {
   Player playerID;
   Player enemyID;
   size_t workers;
-  bool smartPlayouts;
 
   volatile std::atomic<size_t> activeCount;
   volatile std::atomic<size_t> winCount;
