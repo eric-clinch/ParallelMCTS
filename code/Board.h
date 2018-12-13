@@ -39,7 +39,7 @@ class Board {
   virtual int getWidth() const;
   virtual int getHeight() const;
 
-  virtual bool isLegal(const Move &move, Player playerID) const;
+  virtual bool isLegal(const Move &move) const;
 
   virtual std::vector<Move> getMoves() const;
   virtual void getSmartMoves(std::vector<Move> &result);
@@ -78,7 +78,7 @@ class Board {
   size_t P0Captures;  // the number of stones that P0 has captured
   size_t P1Captures;  // the number of stones that P1 has captured
 
-  vector<Move> prevChanges; // used to enforce rule of Ko
+  vector<std::pair<int, int>> prevChanges; // used to enforce rule of Ko
   bool lastMovePassed;
   bool gameOver;
 };

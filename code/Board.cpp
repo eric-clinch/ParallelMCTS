@@ -20,7 +20,7 @@ Board::Board() : width(19), height(19), lastMovePassed(false), gameOver(false) {
   }
 
   seenGrid = new bool[height * width];
-
+  std::vector<std::pair<int, int>> prevChanges;
   P0Stones = 0;
   P1Stones = 0;
   P0Captures = 0;
@@ -38,7 +38,7 @@ Board::Board(int w, int h)
   }
 
   seenGrid = new bool[height * width];
-
+  std::vector<std::pair<int, int>> prevChanges;
   P0Stones = 0;
   P1Stones = 0;
   P0Captures = 0;
@@ -106,9 +106,13 @@ inline int Board::getWidth() const { return width; }
 
 inline int Board::getHeight() const { return height; }
 
-bool Board::isLegal(const Move &move, Player playerID) const {
+bool Board::isLegal(const Move &move) const {
   if (move.isPass()) {
     return true;  // the pass move is always legal
+  } else if (prevChanges.size() == 1 && 
+          prevChanges[0].first == move.getRow() && 
+          prevChanges[0].second == move.getCol()) {
+      return false;
   }
   int row = move.getRow();
   int col = move.getCol();
@@ -120,7 +124,8 @@ std::vector<Move> Board::getMoves() const {
   result.push_back(Move());  // add the pass move
   for (int row = 0; row < height; row++) {
     for (int col = 0; col < width; col++) {
-      if (board[row][col] == BLANK) {
+      if (isLegal(Move(row, col))) {
+        // if (board[row][col] == BLANK) {
         result.push_back(Move(row, col));
       }
     }
@@ -179,7 +184,7 @@ int Board::makeMove(const Move &move, Player playerID) {
   } else {
     lastMovePassed = false;  // this is not a pass move
   }
-
+  std::vector<std::pair<int, int>> prevChanges;
   char stone;
   char enemyStone;
   if (playerID == P0) {
@@ -287,6 +292,7 @@ bool Board::capture(int row, int col, char stone, char enemyStone, int iter) {
 int Board::removeStones(int row, int col, char stone) {
   if (board[row][col] != stone) return 0;
   board[row][col] = BLANK;
+  prevChanges.push_back(std::pair<int, int>(row, col));
   int new_count = 1;
   if (row - 1 >= 0) new_count += removeStones(row - 1, col, stone);
   if (row + 1 < height) new_count += removeStones(row + 1, col, stone);
