@@ -98,8 +98,8 @@ void Board::copyInto(Board &result) const {
 }
 
 inline bool Board::gameIsOver() const {
-  return gameOver || (P0Stones == width * height) ||
-         (P1Stones == width * height);
+  return gameOver || (P0Stones == (unsigned int)(width * height)) ||
+         (P1Stones == (unsigned int)(width * height));
 }
 
 inline int Board::getWidth() const { return width; }
@@ -144,7 +144,7 @@ void Board::getSmartMoves(std::vector<Move> &result) {
       if (board[row][col] == BLANK && !seenGrid[row * height + col]) {
         std::pair<Player, bool> player_controlled =
             floodFillTerritories(row, col, territoryCells);
-        Player player = player_controlled.first;
+        // Player player = player_controlled.first;
         bool controlled = player_controlled.second;
         if (!controlled) {
           for (const std::pair<int, int> &cell : territoryCells) {
@@ -420,7 +420,7 @@ std::pair<Player, bool> Board::floodFillTerritories(
 
   std::pair<int, int> directions[] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
 
-  for (int i = 0; i < cells.size(); i++) {
+  for (int i = 0; i < (int)cells.size(); i++) {
     std::pair<int, int> row_col = cells[i];
     row = row_col.first;
     col = row_col.second;
