@@ -76,6 +76,7 @@ int main(int argc, const char* argv[]) {
     for (int threads = 1; threads <= 16; threads *= 2) {
       Strategy* S0 = new MCTS(msPerMove, 1, threads, true);
       Strategy* S1 = new MCTS(msPerMove, 1, threads, false);
+
       strategies.push_back(S0);
       strategies.push_back(S1);
     }
@@ -85,6 +86,8 @@ int main(int argc, const char* argv[]) {
     for (Strategy* S : strategies) {
       delete S;
     }
+
+    std::cout << "exiting" << std::endl;
   }
 
   return 0;

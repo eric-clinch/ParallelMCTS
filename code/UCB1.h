@@ -20,7 +20,7 @@ class UCB1 : public MAB<T> {
 
   ~UCB1() {}
 
-  int getChoice(const vector<unsigned int> &moveThreadCounts,
+  int getChoice(const vector<unsigned int> &moveThreadCounts, bool averseBranching,
                 const vector<UtilityNode<T>> &nodes, int numTrials) {
     assert(nodes.size() > 0);
     float confidenceNumerator = log(numTrials + 1) * confidenceConstant;
@@ -30,9 +30,15 @@ class UCB1 : public MAB<T> {
     for (int i = 0; i < nodes.size(); i++) {
       unsigned int nodeTrials = nodes[i].numTrials + moveThreadCounts[i];
       if (nodeTrials == 0) return i;
-      float nodeScore = nodes[i].getAverageUtility() +
+      float nodeScore;
+      if (averseBranching) {
+         nodeScore =  nodes[i].getAverageUtility() +
                         sqrt(confidenceNumerator / nodeTrials) -
                         (moveThreadCounts[i] / threadDiversionDenominator);
+      } else {
+         nodeScore =  nodes[i].getAverageUtility() +
+                        sqrt(confidenceNumerator / nodeTrials);
+      }
       if (nodeScore > bestScore) {
         bestScore = nodeScore;
         bestNodeIndex = i;

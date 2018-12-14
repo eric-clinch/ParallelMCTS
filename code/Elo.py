@@ -14,7 +14,7 @@ class Player(object):
     N = 100 
     WIN_RATIO = 2
     INIT_RATING = 400
-    K = 20
+    K = 5
 
     def __init__(self):
         self.rating = Player.INIT_RATING
@@ -71,6 +71,7 @@ def getPlayerNames(matchHistory):
 
 matchHistory = getMatchHistory(FILENAME)
 print("%d matches played" % len(matchHistory))
+matchHistory = matchHistory * 10
 playerNames = getPlayerNames(matchHistory)
 playerDict = {name : Player() for name in playerNames}
 
