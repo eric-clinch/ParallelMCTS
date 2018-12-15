@@ -1,0 +1,183 @@
+% You should title the file with a .tex extension (hw1.tex, for example)
+\documentclass[11pt]{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+
+%\usepackage{setspace}
+%\doublespacing
+\linespread{2}
+
+\oddsidemargin0cm
+\topmargin-2cm     %I recommend adding these three lines to increase the 
+\textwidth16.5cm   %amount of usable space on the page (and save trees)
+\textheight23.5cm  
+
+\newcommand{\question}[2] {\vspace{.25in} \hrule\vspace{0.5em}
+\noindent{\bf #1: #2} \vspace{0.5em}
+\hrule \vspace{.10in}}
+\renewcommand{\part}[1] {\vspace{.10in} {\bf (#1)}}
+
+\newcommand{\myname}{Eric Clinch, Jennifer Lee}
+\newcommand{\myandrew}{eclinch@andrew.cmu.edu, jennife4@andrew.cmu.edu}
+\newcommand{\myhwnum}{1}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt plus 1pt}
+ 
+\pagestyle{fancyplain}
+\lhead{\fancyplain{}{\textbf{HW\myhwnum}}}      % Note the different brackets!
+\rhead{\fancyplain{}{\myname\\ \myandrew}}
+
+\begin{document}
+
+\medskip                        % Skip a "medium" amount of space
+                                % (latex determines what medium is)
+                                % Also try: \bigskip, \littleskip
+
+\thispagestyle{plain}
+\begin{center}                  % Center the following lines
+{\Large MCTS Final Report} \\
+\myname \\
+\myandrew \\
+12/15/2018 \\
+\end{center}
+
+\section*{Summary}
+We parallelized the Monte Carlo Tree Search algorithm, which is the algorithm used by AlphaGo. We achieved a speedup of up to 4 times on the 32-core GHC machines, and the algorithm wins on a 3:1 ratio against the naive implementation of MCTS. 
+
+\section*{Background}
+
+Monte Carlo Tree Search (MCTS) is an algorithm used to solve perfect information sequential games. More specifically, MCTS takes as input a game and a state in the game and approximates the best move to make in that state of the game. MCTS has been shown to be exceptionally good at playing the game of Go; It was so good, in fact, that the Deepmind's Go AI, AlphaGo, which utilized MCTS, beat one of the Go champions. Given how prevalent Go is in modern day society, our iteration of parallelized MCTS uses Go to test its performance.
+
+MCTS explores possible moves using trees where nodes represent a given state of the board and the edges represent a move. MCTS is also an anytime algorithm, meaning that it can be run for as many or as few iterations as desired. The solution that the algorithm converges to improves in quality as more iterations are run, so if you can run multiple iterations in parallel then this should improve the algorithm's rate of convergence. % and would be a source of parallelism.
+
+Additionally, MCTS evaluates a state in the game by performing random rollouts from that state. A random rollout is where each we just simulate each player playing completely randomly until the game is finished and using the result of this playout as a heuristic for the value of the starting state. The idea is that if the starting state of the game is favorable to one player, then that player is more likely to win if both players play randomly from that state, so in expectation this should be a good heuristic. If multiple random rollouts are performed for the given state, then we'll get an evaluation that has lower variance and more accurately represents who is favored in that state of the game. So running multiple rollouts in parallel is again another source of parallelism.
+
+Each round of MCTS can be broken down into four steps:
+
+\begin{itemize}
+\item \textbf{Selection} - starting from the root node, choose successive child nodes until a leaf is reached.
+\item \textbf{Expansion} - if the leaf decisively ends the game, then return the outcome of the game. Otherwise, expand the leaf by more children nodes such that these nodes represent valid moves on the board.
+\item \textbf{Simulation} - perform a random playout. 
+\item \textbf{backpropagation} - updates the nodes on the path from the information gained during the simulation step.
+\end{itemize}
+\section*{Approach}
+
+In our final approach, we used C++ as our primary language on the GHC 32 core machines and created 32 pthreads to parallelize playouts and iteration. Since playouts and iteration are not dependent on each other, we ran them simultaneously to reduce run time. In the sequential version, the program runs playouts while MCTSIteration also runs simultaneously for 1000ms. 
+
+In our first iteration of the parallelized version, we run multiple threads to perform playouts and multiple threads to perform iteration with locks around each node such that no two threads can modify a node at the same time. 
+
+However, increasing parallelism resulted in worse performance; if multiple playout threads are expanding the tree simultaneously, then it's possible that more than one thread are expanding all the exact same path. For example, if thread 1 reaches a leaf node, A, and creates a new child node, B, thread 2 cannot know if A has already been checked and will continue to follow the path A is expanding as it goes down the tree. As a result, instead of having thread 1 and thread 2 expand different parts of the tree, we see a thread is wasted on a path that's already being expanded. 
+
+In our second iteration, we fixed this problem by coming up with a new form of branching called \textbf{aversive branching}. For some context, in UCB1 method, when a node is choosing the best successive node, or the best move, it will maximize the $\frac{T_i}{S_i} + c\sqrt{\frac{ln(S)}{S_i}}$. $T_i$ is the number of wins for the node after considering the i-th node as the next move, $S_i$ is the number of simulations run on the i-th node, $S$ is the number of simulations run on the parent node, and $c$ is a constant. This formula essentially encourages a player to choose a move that had more threads visit it. 
+
+However, when there are multiple threads looking at the same node, this could lead to exploitation over exploration, especially in the earlier stages of the game. To combat this, \textbf{aversive branching} computes the new best move by using the following formula: $\frac{T_i}{S_i} + c\sqrt{\frac{ln(S)}{S_i}} - \frac{P_i}{\sqrt{S}}$ where $P_i$ is the number of processors at the i-th children node. The reason why we subtract $\frac{P_i}{\sqrt{S}}$ is to discourage threads from choosing paths that already have multiple threads checking it out. However, note that this term has stronger effect in the beginning in of the game since $S$ will be smaller, but later on when all moves have been explored, the term has less effect; this essentially encourages more exploration in the beginning and encourages more exploitation towards the end. 
+
+In addition, we implemented a 'pruning' method to improve performance in our second iteration. In Go, players will build up territories using their stones. Because capturing stones entails surrounding an island of your opponent's stones, it's considered a losing move to place your stone in an opponent's territory. To prune moves like these from our list of available moves for our algorithm to choose from, we implemented a function that, given a move, checks if that cell on the board is in the opponent's territory using a floodfill. This improved our performance significantly since we were removing bad moves, and this improved our speedup because we were pruning branches that didn't need to be explored. 
+
+In our third iteration, we ran into a problem where certain states of the game would have less than 32 moves to explore. The current solution essentially promoted exploitation since the algorithm keeps track of which branches are being checked out by other threads by using a vector of booleans. One solution was to just use one thread per branch, but that meant wasting other threads.
+
+We fixed this problem by keeping track of the number of threads visiting each node's children using a vector of unsigned integers. Instead of having a boolean vector that tells the MCTS algorithm whether or not a node is being checked out by a thread, it tells it how many threads are at a specific child node in order to determine if it wants to exploit a more commonly visited node or explore a new path. As a result, there is a more uniform probability of choosing a node as a successor node as supposed to leaving out the best move when rolling playouts. 
+
+% pretending that other threads' iterations have already completed.  When a thread is deciding what move to pick with UCB1 method and other threads are also currently investigating the moves, the thread effectively pretends that those other threads have finished and uses the average of that move's past utilities based on the result of their playout. Then, the thread picks its move accordingly.
+
+
+\section*{Results}
+Overall we were very successful in achieving great speedup given the limitations of tree searches and achieving great performance in terms of choosing the 'smartest' moves. For this project in particular, performance is defined in terms of speedup and in elos. Elos is the rating system often used in zero-sum games to determine a a player's skill level. In the plots below, we demonstrate the elos and speedup of our MCTS implementation vs. the naive implementation. In this case, the naive implementation refers to the first iteration MCTS implementation that only parallelizes both playout and iteration threads. 
+
+For our experiments, we used 13x13 board size; even though Go is traditionally played on 19x19 boards, Go can actually be played on 9x9 or 13x13. Since 9x9 doesn't offer the same challenges as 13x13 or 19x19 provide, we opted for 13x13. In addition, we ran five games per tournament per experiment, pipelined the entire round into a file, and created python scripts that take these as inputs and calculates elos and the average number of playouts per second. 
+
+\subsection*{Experiment 1: Speedup}
+
+\begin{figure}[ht!]
+\begin{center}
+\includegraphics[scale=0.8]{speedup_mcts.png}
+\caption{Number of threads vs. average playouts per second}
+\end{center}
+\end{figure}
+
+Overall, we see that speedup is higher for the naive implementation. While statistically this is true, it is misleading because the averse branching actually better parallelizes the resources we are using. In the naive implementation, there are a lot of loop holes in the logic that not only lead to poor moves, but also to waste of resources. 
+
+For example, we see an almost linear speedup between two playout threads and four playout threads in the naive implementation. This is a really good speedup, and we believe one of the reasons is due to the cache hits. When multiple threads are expanding down the same path, the first thread creates the child nodes, meaning that when the three remaining threads are traversing the newly expanded node, all the children nodes being created are already in the cache. However, achieving good performance is vital; as a result, we altered our implementation to achieve a 'smarter' MCTS that optimizes the use of all of its threads. Thus, we prefer the averse branching even at the cost of speedup. 
+
+\subsection*{Experiment 2: Elos}
+
+\begin{figure}[ht!]
+\begin{center}
+\includegraphics[scale=0.8]{elos_mcts.png}
+\caption{Number of threads vs. elos}
+\end{center}
+\end{figure}
+
+Based on the elos plots, it is clear that the averse branching algorithm performs better than the naive algorithm, even at a scalable level. It's also important to note that elos is on a logarithmic scale, meaning that the averse branching actually performs 4 times as better as the naive branching. At 32 threads, the averse branching performs 1.4 better than the naive one on the log scale, meaning it performs $e^1.4 = 4$ times better. 
+
+Given that our final MCTS implementation optimizes on finding the smartest moves such as by pruning or altering the UCB1 method, we have accomplished our goal of implementing a high elos strategy. 
+
+\subsection*{Experiment 3: Iteration - Playout Parallelization Tradeoff}
+
+\begin{figure}[ht!]
+\begin{center}
+\includegraphics[scale=0.8]{tradeoff_mcts.png}
+\caption{Number of threads vs. elos}
+\end{center}
+\end{figure}
+
+One interesting finding on our speedup was the improvement of performance iteration parallelization has over playout parallelization. We segregated the 16 threads into $x$ iteration groups of $y$ playouts threads such that $x \times y = 16$. In every breakdown of thread allocation, the experiments that had higher $x$ always performed better. 
+
+\subsection*{Experiment 4: Iteration Parallelization}
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{iteration_mcts.png}
+\caption{Number of threads vs. elos}
+\end{center}
+\end{figure}
+
+Given that one of our findings was that iteration speedup was higher than playout speedup, we want to find out by how much does iteration speedup help overall performance. As a result, we ran an experiment using 1, 2, 4, 8, 16, and 32 threaded iteration parallelizations all with just 1 playout thread. 
+
+
+\subsection*{Experiment 5: Sequential vs. Parallel MCTS}
+\begin{figure}[ht!]
+\begin{center}
+\includegraphics[scale=0.8]{seq_vs_par_mcts.png}
+\caption{Number of threads vs. elos}
+\end{center}
+\end{figure}
+For our last experiment, we ran a tournament between eight strategies: five completely sequential strategies that used 1, 2, 4, 8, and 16 seconds to pick their move, respectively, and five parallel that strategies that used 1 second to pick their move using 1, 2, 4, 8, and 16 threads, respectively. The point of the experiment was to test how well the parallel algorithm's performance scales since our previous experiments tested parallel versus parallel strategies. 
+
+The results were that the sequential strategies started to outperform the parallel strategies at around the 4 second or 4 thread mark, but the parallel strategies keep up with the 8 thread strategy outperforming the 4 second strategy and the 16 thread strategy outperforming the 8 second strategy. As a result, our parallel implementation scales fairly well.
+
+Overall, there are several factors that limited our speedup. In our original project plan, we had hoped to increase cache efficiency. However, after working on the project and talking to professors, we realized optimizing cache hits would be out of the scope of the project given that there is still research being done on how to structure n-ary trees to optimize cache efficiency. 
+
+In addition, another limiting factor is the dependencies that are innate to tree structures. Given that MCTS require an ordering of different steps, it's essentially impossible to parallelize these steps. For example, a strategy cannot use backpropagation before rolling out playouts. Nonetheless, we tried our best to shorten run time while maintaining quality of performance. 
+
+% add detail about DEEPER ANALYSIS; how can we break down execution time? is it possible to graph the time spent on playout and iteration in our final strategy?
+
+\section*{References}
+
+For this project, we used little to no sources. 
+
+\section*{Work distribution}
+Eric (55\%), Jennifer (45\%) ?? (not sure what are your thoughts?)
+\begin{itemize}
+\item Sequential implementation
+\begin{itemize}
+\item Eric - created polymorphic classes and base files
+\item Jennifer - implemented board functions and tested board implementation
+\end{itemize}
+
+\item First iteration parallelization
+\begin{itemize}
+\item Eric - playout parallelization
+\item Jennifer - iteration parallelization and locks/concurrency debugging
+\end{itemize}
+\item second/third iteration
+\begin{itemize}
+\item Eric - finished and implemented smart moves, python scripting, UCB1 optimizations
+\item Jennifer - implemented Go rules, started smart moves
+\end{itemize}
+
+\end{itemize}
+\end{document}
