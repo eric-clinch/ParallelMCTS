@@ -20,7 +20,7 @@ Board::Board() : width(19), height(19), lastMovePassed(false), gameOver(false) {
   }
 
   seenGrid = new bool[height * width];
-  std::vector<std::pair<int, int>> prevChanges;
+  std::pair<int, int> prevCaptured(-1, -1);
   P0Stones = 0;
   P1Stones = 0;
   P0Captures = 0;
@@ -38,7 +38,7 @@ Board::Board(int w, int h)
   }
 
   seenGrid = new bool[height * width];
-  std::vector<std::pair<int, int>> prevChanges;
+  std::pair<int, int> prevCaptured (-1, -1);
   P0Stones = 0;
   P1Stones = 0;
   P0Captures = 0;

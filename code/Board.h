@@ -77,8 +77,8 @@ class Board {
 
   size_t P0Captures;  // the number of stones that P0 has captured
   size_t P1Captures;  // the number of stones that P1 has captured
-
-  vector<std::pair<int, int>> prevChanges; // used to enforce rule of Ko
+  
+  std::pair<int, int> prevCaptured; // used to enforce rule of Ko
   bool lastMovePassed;
   bool gameOver;
 };
