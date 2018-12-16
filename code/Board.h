@@ -39,7 +39,7 @@ class Board {
   virtual int getWidth() const;
   virtual int getHeight() const;
 
-  virtual bool isLegal(const Move &move, Player playerID) const;
+  virtual bool isLegal(const Move &move) const;
 
   virtual std::vector<Move> getMoves() const;
   virtual void getSmartMoves(std::vector<Move> &result);
@@ -75,9 +75,16 @@ class Board {
   int P0Stones;
   int P1Stones;
 
+<<<<<<< HEAD
   int P0Captures;  // the number of stones that P0 has captured
   int P1Captures;  // the number of stones that P1 has captured
 
+=======
+  size_t P0Captures;  // the number of stones that P0 has captured
+  size_t P1Captures;  // the number of stones that P1 has captured
+  
+  std::pair<int, int> prevCaptured; // used to enforce rule of Ko
+>>>>>>> f9117359c62dbcde9853427655bc361d2223e563
   bool lastMovePassed;
   bool gameOver;
 };

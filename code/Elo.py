@@ -1,3 +1,9 @@
+import sys
+
+FILENAME = "tournament.txt"
+
+if (len(sys.argv) > 1):
+    FILENAME = sys.argv[1]
 
 # ideas taken from https://blog.mackie.io/the-elo-algorithm
 
@@ -42,7 +48,13 @@ def getMatchHistory(fileName):
 
     lines = s.splitlines()
     lines = list(filter(lambda x: " defeated " in x, lines))
-    matches = list(map(lambda x: tuple(x.split(" defeated ")), lines))
+
+    def getNames(line):
+        names = line.split(" defeated ")
+        names = list(map(lambda x: x.split(":")[1], names))
+        return names
+
+    matches = list(map(lambda x: getNames(x), lines))
     return matches
 
 # returns a sorted list of strings representing the names of the players
@@ -57,7 +69,7 @@ def getPlayerNames(matchHistory):
     return result
 
 
-matchHistory = getMatchHistory("tournament.txt")
+matchHistory = getMatchHistory(FILENAME)
 print("%d matches played" % len(matchHistory))
 playerNames = getPlayerNames(matchHistory)
 playerDict = {name : Player() for name in playerNames}
@@ -67,5 +79,5 @@ for match in matchHistory:
     Player.updateRatings(playerDict[winner], playerDict[loser], 1)
 
 for playerName in playerNames:
-    print(playerName, playerDict[playerName].rating)
+    print("%s: %2.f" % (playerName, playerDict[playerName].rating))
 

@@ -34,7 +34,7 @@ const Move UserPlayer::getMove(const Board &original, Player playerID,
 
         validInput = true;
         Move move(row, col);
-        if (board.isLegal(move, playerID)) {
+        if (board.isLegal(move)) {
           result = move;
           break;
         } else {

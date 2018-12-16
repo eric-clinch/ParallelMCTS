@@ -13,7 +13,11 @@ TreeNode::TreeNode(const Board &board, Player playerID, Player enemyID,
     children.push_back(NULL);
   }
 
+<<<<<<< HEAD
   for (unsigned int i = 0; i < moves.size(); i++) {
+=======
+  for (int i = 0; i < (int)moves.size(); i++) {
+>>>>>>> f9117359c62dbcde9853427655bc361d2223e563
     moveThreadCounts.push_back(0);
   }
 }

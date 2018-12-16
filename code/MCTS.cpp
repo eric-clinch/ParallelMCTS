@@ -98,7 +98,7 @@ void *MCTS::getMoveHelper(void *arg) {
 
   groupInfo.board = NULL;
   groupInfo.activeCount = 1;
-  for (unsigned int i = 0; i < playoutThreads - 1; i++) {
+  for (unsigned int i = 0; i < (unsigned int)(playoutThreads - 1); i++) {
     pthread_join(workers[i], NULL);
   }
 

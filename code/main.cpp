@@ -87,7 +87,7 @@ int main(int argc, const char* argv[]) {
       }
     }
 
-    Game::runTournament(strategies, board_size, board_size * board_size);
+    Game::runTournament(strategies, board_size, board_size * board_size, 1);
 
     for (Strategy* S : strategies) {
       delete S;
