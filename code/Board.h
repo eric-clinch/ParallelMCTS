@@ -72,15 +72,15 @@ class Board {
   char **board;
   bool *seenGrid;
 
-  int P0Stones;
-  int P1Stones;
+  size_t P0Stones;
+  size_t P1Stones;
 
-  int P0Captures;  // the number of stones that P0 has captured
-  int P1Captures;  // the number of stones that P1 has captured
+  size_t P0Captures;  // the number of stones that P0 has captured
+  size_t P1Captures;  // the number of stones that P1 has captured
 
-  std::pair<int, int> prevCaptured;  // used to enforce rule of Ko
   bool lastMovePassed;
   bool gameOver;
+  std::pair<int, int> prevCaptured;  // used to enforce rule of Ko
 };
 
 #endif

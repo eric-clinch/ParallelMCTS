@@ -10,7 +10,12 @@ const char Board::P0STONE = 'W';
 const char Board::P1STONE = 'B';
 const char Board::BLANK = '-';
 
-Board::Board() : width(19), height(19), lastMovePassed(false), gameOver(false) {
+Board::Board()
+    : width(19),
+      height(19),
+      lastMovePassed(false),
+      gameOver(false),
+      prevCaptured(-1, -1) {
   board = new char *[height];
   for (int i = 0; i < height; i++) {
     board[i] = new char[width];
@@ -20,7 +25,6 @@ Board::Board() : width(19), height(19), lastMovePassed(false), gameOver(false) {
   }
 
   seenGrid = new bool[height * width];
-  std::pair<int, int> prevCaptured(-1, -1);
   P0Stones = 0;
   P1Stones = 0;
   P0Captures = 0;
@@ -28,7 +32,11 @@ Board::Board() : width(19), height(19), lastMovePassed(false), gameOver(false) {
 }
 
 Board::Board(int w, int h)
-    : width(w), height(h), lastMovePassed(false), gameOver(false) {
+    : width(w),
+      height(h),
+      lastMovePassed(false),
+      gameOver(false),
+      prevCaptured(-1, -1) {
   board = new char *[height];
   for (int i = 0; i < height; i++) {
     board[i] = new char[width];
@@ -38,7 +46,6 @@ Board::Board(int w, int h)
   }
 
   seenGrid = new bool[height * width];
-  std::pair<int, int> prevCaptured(-1, -1);
   P0Stones = 0;
   P1Stones = 0;
   P0Captures = 0;
@@ -71,6 +78,7 @@ Board Board::getCopy() const {
   result.P1Stones = P1Stones;
   result.P0Captures = P0Captures;
   result.P1Captures = P1Captures;
+  result.prevCaptured = prevCaptured;
 
   result.lastMovePassed = lastMovePassed;
   result.gameOver = gameOver;
@@ -90,6 +98,7 @@ void Board::copyInto(Board &result) const {
   result.P1Stones = P1Stones;
   result.P0Captures = P0Captures;
   result.P1Captures = P1Captures;
+  result.prevCaptured = prevCaptured;
 
   result.lastMovePassed = lastMovePassed;
   result.gameOver = gameOver;
@@ -109,15 +118,9 @@ inline int Board::getHeight() const { return height; }
 bool Board::isLegal(const Move &move) const {
   if (move.isPass()) {
     return true;  // the pass move is always legal
-<<<<<<< HEAD
-  } else if (prevChanges.size() == 1 && prevChanges[0].first == move.getRow() &&
-             prevChanges[0].second == move.getCol()) {
+  } else if (prevCaptured.first == move.getRow() &&
+             prevCaptured.second == move.getCol()) {
     return false;
-=======
-  } else if (prevCaptured.first == move.getRow() && 
-          prevCaptured.second == move.getCol()) {
-      return false;
->>>>>>> 72f3bd464bef321da8fc9e424788d0b0b09a4bc8
   }
   int row = move.getRow();
   int col = move.getCol();
@@ -188,7 +191,7 @@ int Board::makeMove(const Move &move, Player playerID) {
   } else {
     lastMovePassed = false;  // this is not a pass move
   }
-  std::pair<int, int> prevCaptured (-1, -1);
+  prevCaptured = std::pair<int, int>(-1, -1);
   char stone;
   char enemyStone;
   if (playerID == P0) {
@@ -208,12 +211,8 @@ int Board::makeMove(const Move &move, Player playerID) {
   int enemy_points = 0;
   int points = 0;
 
-  seenZeroFill();
-
   // because current row, col is for stone, we need to check 4 adjacent squares
   // for islands of enemyStone that are completely surrounded
-  bool thisStoneCaptured = capture(row, col, stone, enemyStone, 0);
-
   seenZeroFill();
 
   if (row > 0 && board[row - 1][col] == enemyStone &&
@@ -242,7 +241,9 @@ int Board::makeMove(const Move &move, Player playerID) {
     points += removeStones(row, col + 1, enemyStone);
   }
 
-  if (thisStoneCaptured) {
+  seenZeroFill();
+
+  if (capture(row, col, stone, enemyStone, 0)) {
     enemy_points = removeStones(row, col, stone);
   }
 
@@ -505,8 +506,8 @@ std::string Board::toString() {
 }
 
 bool Board::isValid() const {
-  int P0StoneCount = 0;
-  int P1StoneCount = 0;
+  size_t P0StoneCount = 0;
+  size_t P1StoneCount = 0;
 
   for (int row = 0; row < height; row++) {
     for (int col = 0; col < width; col++) {
