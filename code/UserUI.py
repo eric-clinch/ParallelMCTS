@@ -56,6 +56,8 @@ def init(data):
     data.passButtonWidth = 40
 
 def mousePressed(event, data):
+    if not data.waitingOnMove:
+        return
     row = int((event.y - data.margin) // data.cellHeight)
     col = int((event.x - data.margin) // data.cellWidth)
     if (0 <= row < data.boardLen and 0 <= col < data.boardLen):
@@ -121,7 +123,7 @@ def timerFired(data):
     if data.waitingOnMove:
         return
     startTime = time.time()
-    while(time.time() - startTime < .1): # listen for .1 second
+    while(time.time() - startTime < .1 and not data.gameOver): # listen for .1 second
         result = data.process.poll()
         if result is not None: # the process has terminated
             data.gameOver = True
@@ -147,12 +149,13 @@ def timerFired(data):
             data.gameOver = True
             data.userWon = False
             break
-        elif "USER WON" in line:
+        elif "conceding" in line:
             data.gameOver = True
             data.userWon = True
             break
         else:
             print(line)
+            break
 
 def redrawAll(canvas, data):
     canvas.create_rectangle(0, 0, data.width, data.height,
