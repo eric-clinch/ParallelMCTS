@@ -69,7 +69,7 @@ void *MCTS::getMoveHelper(void *arg) {
   size_t iterations = 0;
   mainArg *iterationArg = reinterpret_cast<mainArg *>(arg);
   const Board *board = iterationArg->board;
-  int playoutThreads = iterationArg->workerThreads;
+  unsigned int playoutThreads = iterationArg->workerThreads;
   Player playerID = iterationArg->playerID;
   Player enemyID = iterationArg->enemyID;
   TreeNode *root = iterationArg->node;

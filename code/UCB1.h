@@ -27,7 +27,7 @@ class UCB1 : public MAB<T> {
     float threadDiversionDenominator = sqrt(numTrials + 1);
     int bestNodeIndex = -1;
     float bestScore = -1;
-    for (int i = 0; i < nodes.size(); i++) {
+    for (unsigned int i = 0; i < nodes.size(); i++) {
       unsigned int nodeTrials = nodes[i].numTrials + moveThreadCounts[i];
       if (nodeTrials == 0) return i;
       float nodeScore = nodes[i].getAverageUtility() +

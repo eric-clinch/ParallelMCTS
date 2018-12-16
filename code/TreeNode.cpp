@@ -13,7 +13,7 @@ TreeNode::TreeNode(const Board &board, Player playerID, Player enemyID,
     children.push_back(NULL);
   }
 
-  for (int i = 0; i < moves.size(); i++) {
+  for (unsigned int i = 0; i < moves.size(); i++) {
     moveThreadCounts.push_back(0);
   }
 }

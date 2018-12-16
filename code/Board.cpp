@@ -144,7 +144,6 @@ void Board::getSmartMoves(std::vector<Move> &result) {
       if (board[row][col] == BLANK && !seenGrid[row * height + col]) {
         std::pair<Player, bool> player_controlled =
             floodFillTerritories(row, col, territoryCells);
-        Player player = player_controlled.first;
         bool controlled = player_controlled.second;
         if (!controlled) {
           for (const std::pair<int, int> &cell : territoryCells) {
@@ -203,9 +202,7 @@ int Board::makeMove(const Move &move, Player playerID) {
 
   // because current row, col is for stone, we need to check 4 adjacent squares
   // for islands of enemyStone that are completely surrounded
-  if (capture(row, col, stone, enemyStone, 0)) {
-    enemy_points = removeStones(row, col, stone);
-  }
+  bool thisStoneCaptured = capture(row, col, stone, enemyStone, 0);
 
   seenZeroFill();
 
@@ -233,6 +230,10 @@ int Board::makeMove(const Move &move, Player playerID) {
   if (col + 1 < width && board[row][col + 1] == enemyStone &&
       capture(row, col + 1, enemyStone, stone, 0)) {
     points += removeStones(row, col + 1, enemyStone);
+  }
+
+  if (thisStoneCaptured) {
+    enemy_points = removeStones(row, col, stone);
   }
 
   if (playerID == P0) {
@@ -420,7 +421,7 @@ std::pair<Player, bool> Board::floodFillTerritories(
 
   std::pair<int, int> directions[] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
 
-  for (int i = 0; i < cells.size(); i++) {
+  for (unsigned int i = 0; i < cells.size(); i++) {
     std::pair<int, int> row_col = cells[i];
     row = row_col.first;
     col = row_col.second;
@@ -486,8 +487,8 @@ std::string Board::toString() {
 }
 
 bool Board::isValid() const {
-  size_t P0StoneCount = 0;
-  size_t P1StoneCount = 0;
+  int P0StoneCount = 0;
+  int P1StoneCount = 0;
 
   for (int row = 0; row < height; row++) {
     for (int col = 0; col < width; col++) {

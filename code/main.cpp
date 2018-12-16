@@ -74,10 +74,17 @@ int main(int argc, const char* argv[]) {
   } else {
     std::vector<Strategy*> strategies;
     for (int threads = 1; threads <= 16; threads *= 2) {
+      // parallel configuration
+      msPerMove = 1000;
       Strategy* S0 = new MCTS(msPerMove, 1, threads, true);
-      Strategy* S1 = new MCTS(msPerMove, 1, threads, false);
       strategies.push_back(S0);
-      strategies.push_back(S1);
+
+      if (threads != 1) {
+        // sequential configuration
+        msPerMove *= threads;
+        Strategy* S1 = new MCTS(msPerMove, 1, 1, true);
+        strategies.push_back(S1);
+      }
     }
 
     Game::runTournament(strategies, board_size, board_size * board_size);

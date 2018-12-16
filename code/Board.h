@@ -72,11 +72,11 @@ class Board {
   char **board;
   bool *seenGrid;
 
-  size_t P0Stones;
-  size_t P1Stones;
+  int P0Stones;
+  int P1Stones;
 
-  size_t P0Captures;  // the number of stones that P0 has captured
-  size_t P1Captures;  // the number of stones that P1 has captured
+  int P0Captures;  // the number of stones that P0 has captured
+  int P1Captures;  // the number of stones that P1 has captured
 
   bool lastMovePassed;
   bool gameOver;
