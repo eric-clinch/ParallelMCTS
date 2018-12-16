@@ -109,9 +109,15 @@ inline int Board::getHeight() const { return height; }
 bool Board::isLegal(const Move &move) const {
   if (move.isPass()) {
     return true;  // the pass move is always legal
+<<<<<<< HEAD
   } else if (prevChanges.size() == 1 && prevChanges[0].first == move.getRow() &&
              prevChanges[0].second == move.getCol()) {
     return false;
+=======
+  } else if (prevCaptured.first == move.getRow() && 
+          prevCaptured.second == move.getCol()) {
+      return false;
+>>>>>>> 72f3bd464bef321da8fc9e424788d0b0b09a4bc8
   }
   int row = move.getRow();
   int col = move.getCol();
@@ -182,7 +188,7 @@ int Board::makeMove(const Move &move, Player playerID) {
   } else {
     lastMovePassed = false;  // this is not a pass move
   }
-  std::vector<std::pair<int, int>> prevChanges;
+  std::pair<int, int> prevCaptured (-1, -1);
   char stone;
   char enemyStone;
   if (playerID == P0) {
@@ -292,7 +298,14 @@ bool Board::capture(int row, int col, char stone, char enemyStone, int iter) {
 int Board::removeStones(int row, int col, char stone) {
   if (board[row][col] != stone) return 0;
   board[row][col] = BLANK;
-  prevChanges.push_back(std::pair<int, int>(row, col));
+  if (prevCaptured.first == -1 && prevCaptured.second == -1) {
+    prevCaptured.first = row;
+    prevCaptured.second = col;
+  } else {
+    prevCaptured.first = -1;
+    prevCaptured.second = -1;
+  }
+  // prevChanges.push_back(std::pair<int, int>(row, col));
   int new_count = 1;
   if (row - 1 >= 0) new_count += removeStones(row - 1, col, stone);
   if (row + 1 < height) new_count += removeStones(row + 1, col, stone);
