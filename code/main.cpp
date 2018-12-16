@@ -62,7 +62,7 @@ int main(int argc, const char* argv[]) {
   if (against_user) {
     Strategy* S = new MCTS(msPerMove, playout_threads, iter_threads, false);
     Strategy* user = new UserPlayer();
-    int result = Game::runGame(S, user, board_size);
+    int result = Game::runGame(S, user, board_size, -1, false);
     if (result == 0) {
       std::cout << "USER LOST\n";
     } else {

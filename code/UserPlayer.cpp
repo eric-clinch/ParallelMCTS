@@ -5,15 +5,19 @@
 
 UserPlayer::UserPlayer() {}
 
+void displayBoard(Board &board) {
+  std::cout << "BOARD\n";
+  std::cout << board.toString();
+  std::cout << "END BOARD\n";
+}
+
 const Move UserPlayer::getMove(const Board &original, Player playerID,
                                Player enemyID) {
-  std::cout << "USER MOVE\n";
-
   Board board = original.getCopy();
 
   const char stone = playerID == P0 ? Board::P0STONE : Board::P1STONE;
   std::cout << stone << "'s move" << std::endl;
-  std::cout << board.toString() << std::endl;
+  displayBoard(board);
   Move result;
 
   while (true) {
@@ -46,6 +50,9 @@ const Move UserPlayer::getMove(const Board &original, Player playerID,
       }
     }
   }
+
+  board.makeMove(result, playerID);
+  displayBoard(board);
 
   std::cout << "**********************************\n" << std::flush;
   return result;

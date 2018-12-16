@@ -56,6 +56,7 @@ const Move MCTS::getMove(const Board &board, Player playerID, Player enemyID) {
             << " playouts: " << args.iterations * playoutThreads << std::endl;
 
   float confidence = root.getConfidence();
+  std::cout << "confidence: " << confidence << std::endl;
   if (confidence < 0.1) {
     // if it is estimated that there is a < 10% chance of winning, concede
     std::cout << "conceding" << std::endl;

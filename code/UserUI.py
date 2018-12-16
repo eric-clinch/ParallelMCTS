@@ -29,7 +29,7 @@ from tkinter import *
 
 def init(data):
     data.process = subprocess.Popen(['./mcts', '-u', '-t', str(SECONDS_PER_MOVE), 
-                                     '-p', str(THREADS), '-s', str(BOARD_SIZE)], 
+                                     '-i', str(THREADS), '-s', str(BOARD_SIZE)], 
                                      stdout=subprocess.PIPE, 
                                      stdin=subprocess.PIPE)
     data.boardLen = 19
@@ -38,7 +38,7 @@ def init(data):
     data.userWon = False
     data.turn = None
     data.waitingOnMove = False
-    data.move = None
+    data.confidence = None
 
     data.backgroundColor = rgbString(219, 190, 122)
     data.margin = 30
@@ -59,7 +59,6 @@ def mousePressed(event, data):
     row = int((event.y - data.margin) // data.cellHeight)
     col = int((event.x - data.margin) // data.cellWidth)
     if (0 <= row < data.boardLen and 0 <= col < data.boardLen):
-        data.move = (row, col)
         message = "%d %d\n" % (row, col)
         data.process.stdin.write(message.encode())
         data.process.stdin.flush()
@@ -71,17 +70,19 @@ def keyPressed(event, data):
 
 def makePassMove(data):
     if data.waitingOnMove and not data.gameOver:
-        data.move = None
         message = "%d %d\n" % (-1, -1)
         data.process.stdin.write(message.encode())
         data.process.stdin.flush()
         data.waitingOnMove = False
 
-def parseBoard(data):
-    line = cleanLine(data.process.stdout.readline())
-    data.turn = line[0]
+def parseTurn(data, line):
+    data.turn = line[0]    
     assert(data.turn == 'B' or data.turn == 'W')
 
+def parseConfidence(data, line):
+    data.confidence = float(line.split(" ")[-1])
+
+def parseBoard(data):
     # parse board
     board = []
     line = cleanLine(data.process.stdout.readline())
@@ -100,20 +101,20 @@ def parseBoard(data):
     # parse territory
     lineParts = line.split(",")
     words = lineParts[0].split(" ")
-    data.WTerritory = int(words[-1])
-    words = lineParts[1].split(" ")
     data.BTerritory = int(words[-1])
+    words = lineParts[1].split(" ")
+    data.WTerritory = int(words[-1])
 
     # parse captures
     line = cleanLine(data.process.stdout.readline())
     lineParts = line.split(",")
     words = lineParts[0].split(" ")
-    data.WCaptures = int(words[-1])
-    words = lineParts[1].split(" ")
     data.BCaptures = int(words[-1])
+    words = lineParts[1].split(" ")
+    data.WCaptures = int(words[-1])
 
     line = ""
-    while('Move' not in line):
+    while('END BOARD' not in line):
         line = cleanLine(data.process.stdout.readline())
 
 def timerFired(data):
@@ -126,24 +127,32 @@ def timerFired(data):
             data.gameOver = True
             break
         line = cleanLine(data.process.stdout.readline())
-        if 'USER MOVE' in line:
-            parseBoard(data)
-            data.waitingOnMove = True
+
+        if '\'s move' in line:
+            parseTurn(data, line)
             break
-        elif 'try again' in line:
+        elif 'confidence' in line:
+            parseConfidence(data, line)
+            break
+        elif 'BOARD' in line:
+            parseBoard(data)
+            break
+        elif 'Move (row col)' in line:
             data.waitingOnMove = True
             break
         elif '******' in line:
-            if data.move is not None:
-                moveRow, moveCol = data.move
-                data.board[moveRow][moveCol] = data.turn
-                break
+            data.waitingOnMove = False
+            break
         elif "USER LOST" in line:
             data.gameOver = True
             data.userWon = False
+            break
         elif "USER WON" in line:
             data.gameOver = True
             data.userWon = True
+            break
+        else:
+            print(line)
 
 def redrawAll(canvas, data):
     canvas.create_rectangle(0, 0, data.width, data.height,
@@ -170,6 +179,10 @@ def redrawAll(canvas, data):
                     bot - data.circleMargin, fill=color)
         top = bot
         bot += data.cellHeight
+
+    if (data.confidence is not None):
+        canvas.create_text(data.margin, data.margin / 2, 
+                       text = "AI confidence: %.2f" % (data.confidence), anchor=W)
 
     canvas.create_text(data.margin, data.height - (data.margin + data.botMargin) / 3, 
                        text = "W territory: %d" % data.WTerritory, anchor=SW)

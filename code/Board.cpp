@@ -6,8 +6,8 @@
 #include <string>
 #include "BoardTest.h"
 
-const char Board::P0STONE = 'W';
-const char Board::P1STONE = 'B';
+const char Board::P0STONE = 'B';
+const char Board::P1STONE = 'W';
 const char Board::BLANK = '-';
 
 Board::Board()
