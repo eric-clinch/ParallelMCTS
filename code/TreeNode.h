@@ -12,8 +12,7 @@
 
 class TreeNode {
  public:
-  TreeNode(const Board &board, Player playerID, Player enemyID,
-           bool trackThreads);
+  TreeNode(const Board &board, Player playerID, Player enemyID);
 
   ~TreeNode();
 
@@ -46,8 +45,6 @@ class TreeNode {
 
   mutable std::mutex node_mtx;
   size_t visits;
-
-  bool trackThreads;
 };
 
 #endif  // TREENODE_H__

@@ -11,24 +11,24 @@ std::mt19937 MCTS::rng(rd());
 std::uniform_real_distribution<> MCTS::uni(0, 1);
 
 MCTS::MCTS(int64_t msPerMove, unsigned int playoutThreads,
-           unsigned int iterationThreads, bool rerouteThreads)
+           unsigned int iterationThreads, double explorationConstant)
     : msPerMove(msPerMove),
       playoutThreads(playoutThreads),
       iterationThreads(iterationThreads),
-      mab(new UCB1<Move>(10.0)),
-      rerouteThreads(rerouteThreads) {}
+      mab(new UCB1<Move>(explorationConstant)) {}
 
 MCTS::~MCTS() { delete mab; }
 
 string MCTS::toString() {
   ostringstream stringStream;
   stringStream << "MCTS(" << msPerMove << ", " << playoutThreads << ", "
-               << iterationThreads << ", " << rerouteThreads << ")";
+               << iterationThreads << ", "
+               << ")";
   return stringStream.str();
 }
 
 const Move MCTS::getMove(const Board &board, Player playerID, Player enemyID) {
-  TreeNode root(board, playerID, enemyID, rerouteThreads);
+  TreeNode root(board, playerID, enemyID);
 
   mainArg args;
   args.board = &board;

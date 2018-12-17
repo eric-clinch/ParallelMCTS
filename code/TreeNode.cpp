@@ -1,12 +1,8 @@
 #include "TreeNode.h"
 #include <assert.h>
 
-TreeNode::TreeNode(const Board &board, Player playerID, Player enemyID,
-                   bool trackThreads)
-    : playerID(playerID),
-      enemyID(enemyID),
-      visits(0),
-      trackThreads(trackThreads) {
+TreeNode::TreeNode(const Board &board, Player playerID, Player enemyID)
+    : playerID(playerID), enemyID(enemyID), visits(0) {
   std::vector<Move> moves = board.getMoves();
   for (Move move : moves) {
     moveUtilities.push_back(UtilityNode<Move>(move));
@@ -30,13 +26,13 @@ std::tuple<int, TreeNode *, bool> TreeNode::getAndMakeMove(MAB<Move> &mab,
                                                            Board &board) {
   std::lock_guard<std::mutex> g(node_mtx);
   int moveIndex = mab.getChoice(moveThreadCounts, moveUtilities, visits);
-  if (trackThreads) moveThreadCounts[moveIndex] += 1;
+  moveThreadCounts[moveIndex] += 1;
   Move move = moveUtilities[moveIndex].object;
   board.makeMove(move, playerID);
   bool isLeaf = false;
 
   if (children[moveIndex] == NULL) {
-    children[moveIndex] = new TreeNode(board, enemyID, playerID, trackThreads);
+    children[moveIndex] = new TreeNode(board, enemyID, playerID);
     isLeaf = true;
   }
 
@@ -48,7 +44,7 @@ void TreeNode::updateUtility(int moveIndex, float utility) {
   std::lock_guard<std::mutex> g(node_mtx);
   assert(moveThreadCounts[moveIndex] > 0);
   moveUtilities[moveIndex].updateUtility(utility);
-  if (trackThreads) moveThreadCounts[moveIndex] -= 1;
+  moveThreadCounts[moveIndex] -= 1;
   visits++;
 }
 

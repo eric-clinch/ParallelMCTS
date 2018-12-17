@@ -16,7 +16,7 @@ struct mainArg;
 class MCTS : public Strategy {
  public:
   MCTS(int64_t msPerMove, unsigned int playoutThreads,
-       unsigned int iterationThreads, bool rerouteThreads);
+       unsigned int iterationThreads, double explorationConstant);
   ~MCTS();
   virtual const Move getMove(const Board &board, Player playerID,
                              Player enemyID);
@@ -40,7 +40,6 @@ class MCTS : public Strategy {
   unsigned int playoutThreads;
   unsigned int iterationThreads;
   MAB<Move> *mab;
-  bool rerouteThreads;
 
   static std::random_device rd;
   static std::mt19937 rng;

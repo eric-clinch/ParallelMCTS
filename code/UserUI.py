@@ -235,6 +235,7 @@ def run(width=300, height=300):
 
     # create the root and the canvas
     root = Tk()
+    root.wm_title("Go")
     root.resizable(width=False, height=False) # prevents resizing window
 
     data.root = root
