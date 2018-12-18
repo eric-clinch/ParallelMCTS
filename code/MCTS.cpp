@@ -15,15 +15,15 @@ MCTS::MCTS(int64_t msPerMove, unsigned int playoutThreads,
     : msPerMove(msPerMove),
       playoutThreads(playoutThreads),
       iterationThreads(iterationThreads),
-      mab(new UCB1<Move>(explorationConstant)) {}
+      mab(new UCB1<Move>(explorationConstant)),
+      explorationConstant(explorationConstant) {}
 
 MCTS::~MCTS() { delete mab; }
 
 string MCTS::toString() {
   ostringstream stringStream;
   stringStream << "MCTS(" << msPerMove << ", " << playoutThreads << ", "
-               << iterationThreads << ", "
-               << ")";
+               << iterationThreads << ", " << explorationConstant << ")";
   return stringStream.str();
 }
 

@@ -40,6 +40,7 @@ class MCTS : public Strategy {
   unsigned int playoutThreads;
   unsigned int iterationThreads;
   MAB<Move> *mab;
+  double explorationConstant;
 
   static std::random_device rd;
   static std::mt19937 rng;
