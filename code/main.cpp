@@ -74,13 +74,11 @@ int main(int argc, const char* argv[]) {
   } else {
     std::vector<Strategy*> strategies;
     for (double c = 1.0; c < 3.5; c += 0.5) {
-      // parallel configuration
-      msPerMove = 1000;
       Strategy* S0 = new MCTS(msPerMove, 1, 16, c);
       strategies.push_back(S0);
     }
 
-    Game::runTournament(strategies, board_size, board_size * board_size, 1);
+    Game::runTournament(strategies, board_size, board_size * board_size);
 
     for (Strategy* S : strategies) {
       delete S;
