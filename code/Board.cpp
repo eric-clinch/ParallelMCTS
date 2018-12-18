@@ -133,7 +133,6 @@ std::vector<Move> Board::getMoves() const {
   for (int row = 0; row < height; row++) {
     for (int col = 0; col < width; col++) {
       if (isLegal(Move(row, col))) {
-        // if (board[row][col] == BLANK) {
         result.push_back(Move(row, col));
       }
     }
@@ -160,7 +159,10 @@ void Board::getSmartMoves(std::vector<Move> &result) {
         bool controlled = player_controlled.second;
         if (!controlled) {
           for (const std::pair<int, int> &cell : territoryCells) {
-            result.push_back(Move(cell.first, cell.second));
+            const Move move(cell.first, cell.second);
+            if (isLegal(move)) {
+              result.push_back(move);
+            }
           }
         }
         territoryCells.clear();
