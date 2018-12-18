@@ -3,7 +3,6 @@
 
 #include <atomic>
 #include <random>
-// #include <mutex>
 #include "Board.h"
 #include "MAB.h"
 #include "Move.h"
@@ -16,7 +15,8 @@ struct mainArg;
 class MCTS : public Strategy {
  public:
   MCTS(int64_t msPerMove, unsigned int playoutThreads,
-       unsigned int iterationThreads, double explorationConstant);
+       unsigned int iterationThreads, double explorationConstant,
+       double playoutPercent);
   ~MCTS();
   virtual const Move getMove(const Board &board, Player playerID,
                              Player enemyID);
@@ -31,7 +31,8 @@ class MCTS : public Strategy {
   // static void *MCTSIterationWorker(void *args);
   float performPlayouts(Board &board, Player playerID, Player enemyID,
                         workerArg *groupInfo);
-  static int playout(Board *board, Player playerID, Player enemyID);
+  static int playout(Board *board, Player playerID, Player enemyID,
+                     double playoutPercent);
   static void *playoutWorker(void *arg);
   static const Move sampleMove(std::vector<Move> &moves);
 
@@ -41,6 +42,7 @@ class MCTS : public Strategy {
   unsigned int iterationThreads;
   MAB<Move> *mab;
   double explorationConstant;
+  double playoutPercent;
 
   static std::random_device rd;
   static std::mt19937 rng;
@@ -49,6 +51,7 @@ class MCTS : public Strategy {
 
 struct workerArg {
   Board *board;
+  double playoutPercent;
   Player playerID;
   Player enemyID;
   size_t workers;

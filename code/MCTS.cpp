@@ -11,19 +11,24 @@ std::mt19937 MCTS::rng(rd());
 std::uniform_real_distribution<> MCTS::uni(0, 1);
 
 MCTS::MCTS(int64_t msPerMove, unsigned int playoutThreads,
-           unsigned int iterationThreads, double explorationConstant)
+           unsigned int iterationThreads, double explorationConstant,
+           double playoutPercent)
     : msPerMove(msPerMove),
       playoutThreads(playoutThreads),
       iterationThreads(iterationThreads),
       mab(new UCB1<Move>(explorationConstant)),
-      explorationConstant(explorationConstant) {}
+      explorationConstant(explorationConstant),
+      playoutPercent(playoutPercent) {
+  assert(0. <= playoutPercent && playoutPercent <= 1.);
+}
 
 MCTS::~MCTS() { delete mab; }
 
 string MCTS::toString() {
   ostringstream stringStream;
   stringStream << "MCTS(" << msPerMove << ", " << playoutThreads << ", "
-               << iterationThreads << ", " << explorationConstant << ")";
+               << iterationThreads << ", " << explorationConstant << ", "
+               << playoutPercent << ")";
   return stringStream.str();
 }
 
@@ -79,6 +84,7 @@ void *MCTS::getMoveHelper(void *arg) {
 
   pthread_t workers[playoutThreads - 1];
   workerArg groupInfo;
+  groupInfo.playoutPercent = mcts->playoutPercent;
   groupInfo.workers = playoutThreads - 1;
   groupInfo.activeCount = 0;
   groupInfo.winCount = 0;
@@ -143,7 +149,7 @@ float MCTS::performPlayouts(Board &board, Player playerID, Player enemyID,
   groupInfo->winCount = 0;
   groupInfo->activeCount =
       groupInfo->workers;  // alert all workers to begin playouts
-  size_t result = playout(&board, playerID, enemyID);
+  size_t result = playout(&board, playerID, enemyID, groupInfo->playoutPercent);
 
   // wait for workers to complete
   while (groupInfo->activeCount > 0) {
@@ -162,15 +168,15 @@ void *MCTS::playoutWorker(void *arg) {
 
   while (true) {
     // wait for a playout job
-    while (groupInfo->activeCount == 0)
-      ;
+    while (groupInfo->activeCount == 0) {
+    }
 
     if (groupInfo->board == NULL) {
       return NULL;  // the master has signaled us to exit
     }
 
-    int result =
-        playout(groupInfo->board, groupInfo->playerID, groupInfo->enemyID);
+    int result = playout(groupInfo->board, groupInfo->playerID,
+                         groupInfo->enemyID, groupInfo->playoutPercent);
 
     if (result > 0) {
       groupInfo->winCount.fetch_add(result);
@@ -185,13 +191,15 @@ void *MCTS::playoutWorker(void *arg) {
   }
 }
 
-int MCTS::playout(Board *originalBoard, Player playerID, Player enemyID) {
+int MCTS::playout(Board *originalBoard, Player playerID, Player enemyID,
+                  double playoutPercent) {
   Board board = originalBoard->getCopy();
 
   Player currentPlayer = playerID;
 
   size_t iters = 0;
-  size_t maxIters = board.getWidth() * board.getHeight();
+  size_t maxIters =
+      static_cast<int>(playoutPercent * (board.getWidth() * board.getHeight()));
   std::vector<Move> moves;
   while (!board.gameIsOver() && iters < maxIters) {
     iters++;
