@@ -321,9 +321,9 @@ unsigned int Board::playerScore(Player playerID) {
   unsigned int score;
   std::pair<unsigned int, unsigned int> territories = getTerritories();
   if (playerID == P0) {
-    score = territories.first + P0Stones + P0Captures;
+    score = territories.first + P0Captures;
   } else {
-    score = territories.second + P1Stones + P1Captures;
+    score = territories.second + P1Captures;
   }
 
   return score;
