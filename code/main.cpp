@@ -60,9 +60,9 @@ int main(int argc, const char* argv[]) {
   BoardTest::test();
 
   if (against_user) {
-    Strategy* S = new MCTS(msPerMove, playout_threads, iter_threads, 2.0, 1.0);
+    Strategy* S = new MCTS(msPerMove, playout_threads, iter_threads, 0.2, 0.75);
     Strategy* user = new UserPlayer();
-    int result = Game::runGame(S, user, board_size, -1, false);
+    int result = Game::runGame(user, S, board_size, -1, false);
     if (result == 0) {
       std::cout << "USER LOST\n";
     } else {
@@ -73,10 +73,11 @@ int main(int argc, const char* argv[]) {
     delete user;
   } else {
     std::vector<Strategy*> strategies;
-    for (double p = 0.2; p < 1.01; p += 0.2) {
-      Strategy* S = new MCTS(msPerMove, 1, 16, 2.0, p);
-      strategies.push_back(S);
-    }
+
+    Strategy* S0 = new MCTS(msPerMove, 1, 16, 2.0, 1.0);
+    strategies.push_back(S0);
+    Strategy* S1 = new MCTS(msPerMove, 1, 16, 0.2, 0.75);
+    strategies.push_back(S1);
 
     Game::runTournament(strategies, board_size, board_size * board_size);
 
