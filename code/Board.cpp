@@ -317,13 +317,14 @@ int Board::removeStones(int row, int col, char stone) {
   return new_count;
 }
 
+// scored by Chinese rules (area scoring)
 unsigned int Board::playerScore(Player playerID) {
   unsigned int score;
   std::pair<unsigned int, unsigned int> territories = getTerritories();
   if (playerID == P0) {
-    score = territories.first + P0Captures;
+    score = territories.first + P0Captures + P0Stones;
   } else {
-    score = territories.second + P1Captures;
+    score = territories.second + P1Captures + P1Stones;
   }
 
   return score;
