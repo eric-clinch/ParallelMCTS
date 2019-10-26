@@ -2,9 +2,10 @@ import subprocess
 import time
 import sys
 
-SECONDS_PER_MOVE = 1
-THREADS = 1
+SECONDS_PER_MOVE = 5
+THREADS = 2
 BOARD_SIZE = 9
+USER_VS_USER = False
 
 if (len(sys.argv) > 1):
     SECONDS_PER_MOVE = int(sys.argv[1])
@@ -12,6 +13,8 @@ if (len(sys.argv) > 2):
     THREADS = int(sys.argv[2])
 if (len(sys.argv) > 3):
     BOARD_SIZE = int(sys.argv[3])
+if (len(sys.argv) > 4):
+    USER_VS_USER = True
 
 def cleanLine(line):
     line = str(line)
@@ -27,8 +30,10 @@ def rgbString(red, green, blue):
 
 from tkinter import *
 
+modeFlag = '-v' if USER_VS_USER else '-u'
+
 def init(data):
-    data.process = subprocess.Popen(['./mcts', '-u', '-t', str(SECONDS_PER_MOVE), 
+    data.process = subprocess.Popen(['./mcts', modeFlag, '-t', str(SECONDS_PER_MOVE), 
                                      '-i', str(THREADS), '-s', str(BOARD_SIZE)], 
                                      stdout=subprocess.PIPE, 
                                      stdin=subprocess.PIPE)
@@ -41,7 +46,7 @@ def init(data):
     data.confidence = None
 
     data.backgroundColor = rgbString(219, 190, 122)
-    data.margin = 30
+    data.margin = 50
     data.botMargin = 20
     data.cellWidth = (data.width - 2 * data.margin) / data.boardLen
     data.cellHeight = (data.height - data.botMargin - 2 * data.margin) / data.boardLen
@@ -203,7 +208,15 @@ def redrawAll(canvas, data):
         message = "YOU WON" if data.userWon else "YOU LOST"
         canvas.create_text(data.width / 2, data.margin / 2, text=message)
     elif data.waitingOnMove:
-        canvas.create_text(data.width / 2, data.margin / 2, text="Your Turn")
+        canvas.create_text(data.width / 2, data.margin / 3, text="Your Turn")
+        if data.turn == 'B':
+            color = 'black'
+        else:
+            color = 'white'
+        cellRadius = data.cellWidth / 2 - data.circleMargin
+        cellRadius /= 2
+        canvas.create_oval(data.width / 2 - cellRadius, data.margin - cellRadius,
+                           data.width / 2 + cellRadius, data.margin + cellRadius, fill=color)
 
 def run(width=300, height=300):
     def redrawAllWrapper(canvas, data):
@@ -255,4 +268,4 @@ def run(width=300, height=300):
     root.mainloop()  # blocks until window is closed
     print("bye!")
 
-run(700, 700)
+run(800, 800)

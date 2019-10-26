@@ -56,6 +56,7 @@ int main(int argc, const char* argv[]) {
   int iter_threads = get_option_int("-i", 1);
   int board_size = get_option_int("-s", 9);
   bool against_user = get_flag("-u");
+  bool user_vs_user = get_flag("-v");
 
   BoardTest::test();
 
@@ -70,6 +71,16 @@ int main(int argc, const char* argv[]) {
     }
 
     delete S;
+    delete user;
+  } else if (user_vs_user) {
+    Strategy* user = new UserPlayer();
+    int result = Game::runGame(user, user, board_size, -1, false);
+    if (result == 0) {
+      std::cout << "USER LOST\n";
+    } else {
+      std::cout << "USER WON\n";
+    }
+
     delete user;
   } else {
     std::vector<Strategy*> strategies;
