@@ -3,7 +3,9 @@
 
 TreeNode::TreeNode(const Board &board, Player playerID, Player enemyID)
     : playerID(playerID), enemyID(enemyID), visits(0) {
-  std::vector<Move> moves = board.getMoves();
+  std::vector<Move> moves = board.priorityOrderedMoves();
+  // std::vector<Move> moves = board.getMoves();
+
   for (Move move : moves) {
     moveUtilities.push_back(UtilityNode<Move>(move));
     children.push_back(NULL);
@@ -48,7 +50,7 @@ void TreeNode::updateUtility(int moveIndex, float utility) {
   visits++;
 }
 
-const Move TreeNode::getMostVisited() {
+const Move TreeNode::getMostVisited() const {
   assert(moveUtilities.size() > 0);
 
   const Move *result = NULL;
@@ -67,7 +69,7 @@ const Move TreeNode::getMostVisited() {
 
 // returns how confident the AI is that it is in a winning position.
 // Confidence is computed as the win rate of the move with the highest utility
-float TreeNode::getConfidence() {
+float TreeNode::getConfidence() const {
   assert(moveUtilities.size() > 0);
 
   float result = 0.;
@@ -82,12 +84,12 @@ float TreeNode::getConfidence() {
   return result;
 }
 
-bool TreeNode::isLeaf() {
+bool TreeNode::isLeaf() const {
   std::lock_guard<std::mutex> g(node_mtx);
   return moveUtilities.size() == 0;
 }
 
-size_t TreeNode::getNumMoves() {
+size_t TreeNode::getNumMoves() const {
   std::lock_guard<std::mutex> g(node_mtx);
   return moveUtilities.size();
 }

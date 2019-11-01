@@ -4,6 +4,7 @@
 #include <sstream>
 #include <stack>
 #include <string>
+#include <unordered_set>
 #include "BoardTest.h"
 
 const char Board::P0STONE = 'B';
@@ -61,7 +62,7 @@ Board::~Board() {
   delete[] seenGrid;
 }
 
-void Board::seenZeroFill() {
+void Board::seenZeroFill() const {
   for (int i = 0; i < width * height; i++) seenGrid[i] = false;
 }
 
@@ -106,14 +107,14 @@ void Board::copyInto(Board &result) const {
   assert(result.isValid());
 }
 
-inline bool Board::gameIsOver() const {
+bool Board::gameIsOver() const {
   return gameOver || (P0Stones == (unsigned int)(width * height)) ||
          (P1Stones == (unsigned int)(width * height));
 }
 
-inline int Board::getWidth() const { return width; }
+int Board::getWidth() const { return width; }
 
-inline int Board::getHeight() const { return height; }
+int Board::getHeight() const { return height; }
 
 bool Board::isLegal(const Move &move) const {
   if (move.isPass()) {
@@ -141,7 +142,7 @@ std::vector<Move> Board::getMoves() const {
   return result;
 }
 
-void Board::getSmartMoves(std::vector<Move> &result) {
+void Board::getContestedTerritoryMoves(std::vector<Move> &result) {
   if (P0Stones == 0 || P1Stones == 0) {
     // this is a bit of a degenerate case. Just return all the legal moves
     result = getMoves();
@@ -150,10 +151,11 @@ void Board::getSmartMoves(std::vector<Move> &result) {
 
   seenZeroFill();
 
+  // Get all moves that aren't in another player's territory
   std::vector<std::pair<int, int>> territoryCells;
   for (int row = 0; row < height; row++) {
     for (int col = 0; col < width; col++) {
-      if (board[row][col] == BLANK && !seenGrid[row * height + col]) {
+      if (board[row][col] == BLANK && !seenGrid[row * width + col]) {
         std::pair<Player, bool> player_controlled =
             floodFillTerritories(row, col, territoryCells);
         bool controlled = player_controlled.second;
@@ -174,6 +176,45 @@ void Board::getSmartMoves(std::vector<Move> &result) {
     // add the pass move if there are no other reasonable moves to make
     result.push_back(Move());
   }
+}
+
+int Board::neighborCount(int row, int col) const {
+  int result = 0;
+  if (row > 0 && board[row - 1][col] != BLANK) result++;
+  if (col > 0 && board[row][col - 1] != BLANK) result++;
+  if (row + 1 < height && board[row + 1][col] != BLANK) result++;
+  if (col + 1 < width && board[row][col + 1] != BLANK) result++;
+  return result;
+}
+
+std::vector<Move> Board::priorityOrderedMoves() const {
+  seenZeroFill();
+  std::vector<Move> moves;
+  // Add all the moves that neighbor an existing piece
+  for (int row = 0; row < height; row++) {
+    for (int col = 0; col < width; col++) {
+      if (board[row][col] == BLANK && neighborCount(row, col) > 0) {
+        Move move(row, col);
+        if (isLegal(move)) {
+          moves.push_back(move);
+          seenGrid[row * width + col] = true;
+        }
+      }
+    }
+  }
+
+  // Add all the remaining moves
+  for (int row = 0; row < height; row++) {
+    for (int col = 0; col < width; col++) {
+      if (board[row][col] == BLANK && !seenGrid[row * width + col]) {
+        Move move(row, col);
+        moves.push_back(move);
+        seenGrid[row * width + col] = true;
+      }
+    }
+  }
+
+  return moves;
 }
 
 int Board::makeMove(const Move &move, Player playerID) {

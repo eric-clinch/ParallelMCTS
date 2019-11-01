@@ -204,7 +204,7 @@ int MCTS::playout(Board *originalBoard, Player playerID, Player enemyID,
   while (!board.gameIsOver() && iters < maxIters) {
     iters++;
 
-    board.getSmartMoves(moves);
+    board.getContestedTerritoryMoves(moves);
     if (moves.size() == 0) {
       break;
     }

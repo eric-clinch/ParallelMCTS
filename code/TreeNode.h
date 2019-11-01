@@ -21,11 +21,11 @@ class TreeNode {
 
   void updateUtility(int moveIndex, float utility);
 
-  const Move getMostVisited();
-  float getConfidence();
-  bool isLeaf();
+  const Move getMostVisited() const;
+  float getConfidence() const;
+  bool isLeaf() const;
 
-  size_t getNumMoves();
+  size_t getNumMoves() const;
 
   int getCount() {
     int s = 0;

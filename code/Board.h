@@ -27,28 +27,29 @@ class Board {
   int getWidth() { return width; }
   int getHeight() { return height; }
 
-  virtual Board getCopy() const;
-  virtual void copyInto(Board &result) const;
+  Board getCopy() const;
+  void copyInto(Board &result) const;
 
-  virtual void seenZeroFill();
+  void seenZeroFill() const;
 
-  virtual bool gameIsOver() const;
-  virtual unsigned int playerScore(Player playerID);
-  virtual Player getWinner();
+  bool gameIsOver() const;
+  unsigned int playerScore(Player playerID);
+  Player getWinner();
 
-  virtual int getWidth() const;
-  virtual int getHeight() const;
+  int getWidth() const;
+  int getHeight() const;
 
-  virtual bool isLegal(const Move &move) const;
+  bool isLegal(const Move &move) const;
 
-  virtual std::vector<Move> getMoves() const;
-  virtual void getSmartMoves(std::vector<Move> &result);
-  virtual int makeMove(const Move &move, Player playerID);
-  virtual bool capture(int i, int j, char stone, char enemyStone, int iter);
-  virtual int removeStones(int x, int y, char stone);
+  std::vector<Move> getMoves() const;
+  std::vector<Move> priorityOrderedMoves() const;
+  void getContestedTerritoryMoves(std::vector<Move> &result);
+  int makeMove(const Move &move, Player playerID);
+  bool capture(int i, int j, char stone, char enemyStone, int iter);
+  int removeStones(int x, int y, char stone);
 
-  virtual std::string toString();
-  virtual void update(int i, int j, char stone);
+  std::string toString();
+  void update(int i, int j, char stone);
 
   friend class BoardTest;
 
@@ -58,19 +59,21 @@ class Board {
   static const char BLANK;
 
  private:
-  virtual unsigned int stoneCount(char stone) const;
-  virtual std::pair<unsigned int, unsigned int> getTerritories();
-  virtual std::pair<Player, unsigned int> floodFillTerritories(int row,
-                                                               int col);
-  virtual std::pair<Player, bool> floodFillTerritories(
+  unsigned int stoneCount(char stone) const;
+  std::pair<unsigned int, unsigned int> getTerritories();
+  std::pair<Player, unsigned int> floodFillTerritories(int row, int col);
+  std::pair<Player, bool> floodFillTerritories(
       int row, int col, std::vector<std::pair<int, int>> &cells);
 
   bool isValid() const;
 
+  // Returns the number of stones neighboring the given position
+  int neighborCount(int row, int col) const;
+
  private:
   int width, height;
   char **board;
-  bool *seenGrid;
+  volatile bool *seenGrid;
 
   size_t P0Stones;
   size_t P1Stones;
