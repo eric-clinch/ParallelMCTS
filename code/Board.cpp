@@ -208,8 +208,10 @@ std::vector<Move> Board::priorityOrderedMoves() const {
     for (int col = 0; col < width; col++) {
       if (board[row][col] == BLANK && !seenGrid[row * width + col]) {
         Move move(row, col);
-        moves.push_back(move);
-        seenGrid[row * width + col] = true;
+        if (isLegal(move)) {
+          moves.push_back(move);
+          seenGrid[row * width + col] = true;
+        }
       }
     }
   }
@@ -219,6 +221,7 @@ std::vector<Move> Board::priorityOrderedMoves() const {
 
 int Board::makeMove(const Move &move, Player playerID) {
   assert(isValid());
+  assert(isLegal(move));
   if (gameOver) {
     return 0;  // the game is over, moves shouldn't be made
   }
@@ -234,7 +237,7 @@ int Board::makeMove(const Move &move, Player playerID) {
   } else {
     lastMovePassed = false;  // this is not a pass move
   }
-  prevCaptured = std::pair<int, int>(-1, -1);
+  prevCaptured = {-1, -1};
   char stone;
   char enemyStone;
   if (playerID == P0) {
@@ -473,7 +476,6 @@ std::pair<Player, unsigned int> Board::floodFillTerritories(int row, int col) {
 std::pair<Player, bool> Board::floodFillTerritories(
     int row, int col, std::vector<std::pair<int, int>> &cells) {
   assert(cells.size() == 0);
-  assert(false);
 
   cells.push_back(std::pair<int, int>(row, col));
 
