@@ -3,15 +3,15 @@
 
 TreeNode::TreeNode(const Board &board, Player playerID, Player enemyID)
     : playerID(playerID), enemyID(enemyID), visits(0) {
-  std::vector<Move> moves = board.priorityOrderedMoves();
+  // std::vector<Move> moves = board.priorityOrderedMoves();
+  std::vector<std::pair<Move, float>> moveAndWeights =
+      board.getMovesAndWeights();
   // std::vector<Move> moves = board.getMoves();
 
-  for (Move move : moves) {
-    moveUtilities.push_back(UtilityNode<Move>(move));
+  for (const std::pair<Move, float> &moveWeight : moveAndWeights) {
+    moveUtilities.push_back(
+        UtilityNode<Move>(moveWeight.first, moveWeight.second));
     children.push_back(NULL);
-  }
-
-  for (unsigned int i = 0; i < moves.size(); i++) {
     moveThreadCounts.push_back(0);
   }
 }
@@ -68,16 +68,17 @@ const Move TreeNode::getMostVisited() const {
 }
 
 // returns how confident the AI is that it is in a winning position.
-// Confidence is computed as the win rate of the move with the highest utility
+// Confidence is computed as the win rate of the move with the most visits
 float TreeNode::getConfidence() const {
   assert(moveUtilities.size() > 0);
 
+  unsigned int resultTrials = 0;
   float result = 0.;
   std::lock_guard<std::mutex> g(node_mtx);
   for (const UtilityNode<Move> &moveUtility : moveUtilities) {
-    float averageUtility = moveUtility.getAverageUtility();
-    if (averageUtility > result) {
-      result = averageUtility;
+    if (moveUtility.numTrials > resultTrials) {
+      result = moveUtility.getAverageUtility();
+      resultTrials = moveUtility.numTrials;
     }
   }
 

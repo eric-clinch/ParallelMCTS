@@ -1,0 +1,9 @@
+# Executables and compiled
+*.exe
+*/.exe
+*/.o
+
+# Python
+__pycache__/
+*.pyc
+

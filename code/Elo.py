@@ -10,7 +10,7 @@ if (len(sys.argv) > 1):
 import math
 
 class Player(object):
-    # Having 100 more elo points should mean you win ~2 times as often
+    # Having N more elo points should mean you win ~WIN_RATIO times as often
     N = 100 
     WIN_RATIO = 2
     INIT_RATING = 400

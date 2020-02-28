@@ -62,7 +62,7 @@ const Move MCTS::getMove(const Board &board, Player playerID, Player enemyID) {
 
   float confidence = root.getConfidence();
   std::cout << "confidence: " << confidence << std::endl;
-  if (confidence < 0.1) {
+  if (confidence < 0.01) {
     // if it is estimated that there is a < 10% chance of winning, concede
     std::cout << "conceding" << std::endl;
     return Move();
@@ -119,6 +119,7 @@ float MCTS::MCTSIteration(Board &board, Player playerID, Player enemyID,
   if (node.isLeaf()) {
     return performPlayouts(board, playerID, enemyID, groupInfo);
   }
+
   int moveIndex;
   TreeNode *child;
   bool childIsLeaf;

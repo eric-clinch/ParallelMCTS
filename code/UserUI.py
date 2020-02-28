@@ -2,7 +2,7 @@ import subprocess
 import time
 import sys
 
-SECONDS_PER_MOVE = 5
+SECONDS_PER_MOVE = 15
 THREADS = 4
 BOARD_SIZE = 9
 USER_VS_USER = False

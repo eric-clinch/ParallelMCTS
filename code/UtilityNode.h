@@ -13,11 +13,17 @@ class UtilityNode {
   float totalUtility;
   const T object;
   unsigned int numTrials;
+  const float priorWeight;
 
   UtilityNode() {}
 
-  explicit UtilityNode(const T &object)
-      : totalUtility(0.), object(object), numTrials(0) {}
+  UtilityNode(const T &object, float priorWeight)
+      : totalUtility(0.),
+        object(object),
+        numTrials(0),
+        priorWeight(priorWeight) {}
+
+  explicit UtilityNode(const T &object) : UtilityNode(object, 1.) {}
 
   float getAverageUtility() const {
     if (numTrials == 0) {
@@ -30,7 +36,6 @@ class UtilityNode {
     totalUtility += trialUtility;
     numTrials += 1;
   }
-
 };
 
 #endif

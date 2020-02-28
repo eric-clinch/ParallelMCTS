@@ -58,7 +58,7 @@ int main(int argc, const char* argv[]) {
   bool against_user = get_flag("-u");
   bool user_vs_user = get_flag("-v");
 
-  BoardTest::test();
+  // BoardTest::test();
 
   if (against_user) {
     Strategy* S = new MCTS(msPerMove, playout_threads, iter_threads, 0.2, 0.75);

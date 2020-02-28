@@ -43,6 +43,7 @@ class Board {
 
   std::vector<Move> getMoves() const;
   std::vector<Move> priorityOrderedMoves() const;
+  std::vector<std::pair<Move, float>> getMovesAndWeights() const;
   void getContestedTerritoryMoves(std::vector<Move> &result);
   int makeMove(const Move &move, Player playerID);
   bool capture(int i, int j, char stone, char enemyStone, int iter);

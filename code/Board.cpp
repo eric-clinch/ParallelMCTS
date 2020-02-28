@@ -219,6 +219,37 @@ std::vector<Move> Board::priorityOrderedMoves() const {
   return moves;
 }
 
+std::vector<std::pair<Move, float>> Board::getMovesAndWeights() const {
+  std::vector<Move> moves(getMoves());
+  std::vector<std::pair<Move, float>> moveWeights(moves.size());
+  for (int i = 0; i < moves.size(); i++) {
+    Move &move = moves[i];
+    float weight = 1.;
+
+    if (move.row >= 2 && move.col >= 2 && width - move.col > 2 &&
+        height - move.row > 2) {
+      weight += 1.;
+      if (move.row == 2 || move.col == 2 || width - move.col == 3 ||
+          height - move.row == 3) {
+        weight += 1.;
+      }
+    }
+
+    if (move.isPass()) {
+      weight = 0.1;
+    } else {
+      int neighbors = neighborCount(move.row, move.col);
+      if (1 <= neighbors && neighbors < 4) {
+        weight += 1;
+      }
+    }
+
+    moveWeights[i] = std::pair<Move, float>(move, weight);
+  }
+
+  return moveWeights;
+}
+
 int Board::makeMove(const Move &move, Player playerID) {
   assert(isValid());
   assert(isLegal(move));
