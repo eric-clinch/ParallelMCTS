@@ -2,8 +2,8 @@ import subprocess
 import time
 import sys
 
-SECONDS_PER_MOVE = 15
-THREADS = 4
+SECONDS_PER_MOVE = 2
+THREADS = 12
 BOARD_SIZE = 9
 USER_VS_USER = False
 
@@ -57,6 +57,10 @@ def init(data):
     data.WTerritory = 0
     data.WCaptures = 0
 
+    # Where the most recent stone was placed
+    data.placedRow = None
+    data.placedCol = None
+
     data.passButton = Button(data.root, text="Pass", relief=GROOVE, command=lambda: makePassMove(data))
     data.passButtonWidth = 40
 
@@ -66,6 +70,8 @@ def mousePressed(event, data):
     row = int((event.y - data.margin) // data.cellHeight)
     col = int((event.x - data.margin) // data.cellWidth)
     if (0 <= row < data.boardLen and 0 <= col < data.boardLen):
+        data.placedRow = row
+        data.placedCol = col
         message = "%d %d\n" % (row, col)
         data.process.stdin.write(message.encode())
         data.process.stdin.flush()
@@ -83,13 +89,17 @@ def makePassMove(data):
         data.waitingOnMove = False
 
 def parseTurn(data, line):
-    data.turn = line[0]    
+    data.turn = line[0]
     assert(data.turn == 'B' or data.turn == 'W')
 
 def parseConfidence(data, line):
     data.confidence = float(line.split(" ")[-1])
 
 def parseBoard(data):
+    if data.waitingOnMove:
+        data.placedRow = None
+        data.placedCol = None
+
     # parse board
     board = []
     line = cleanLine(data.process.stdout.readline())
@@ -99,6 +109,17 @@ def parseBoard(data):
         board.append(row)
 
         line = cleanLine(data.process.stdout.readline())
+
+    opponent_stone = 'W' if data.turn is 'B' else 'W'
+    if len(board) == len(data.board):
+        for row_idx in range(len(board)):
+            for col_idx in range(len(board[row_idx])):
+                if (data.board[row_idx][col_idx] == '-' and 
+                            board[row_idx][col_idx] == opponent_stone):
+                    data.placedRow = row_idx
+                    data.placedCol = col_idx
+
+
     data.board = board
     assert(len(data.board) == len(data.board[0])) # the board should be square
     data.boardLen = len(board)
@@ -182,9 +203,14 @@ def redrawAll(canvas, data):
                     color = 'black'
                 if data.board[row][col] == 'W':
                     color = 'white'
+                outline = 'black'
+                width = 1
+                if row == data.placedRow and col == data.placedCol:
+                    outline = 'red'
+                    width = 4
                 canvas.create_oval(left + data.circleMargin, 
                     top + data.circleMargin, right - data.circleMargin, 
-                    bot - data.circleMargin, fill=color)
+                    bot - data.circleMargin, fill=color, outline=outline, width=width)
         top = bot
         bot += data.cellHeight
 
