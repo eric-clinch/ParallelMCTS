@@ -6,6 +6,7 @@
 #include <limits>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "MAB.h"
 
@@ -21,12 +22,20 @@ class UCB1 : public MAB<T> {
 
   ~UCB1() {}
 
+  double getSearchPrior(
+      const T &obj, const std::unordered_map<T, double> &searchPriorMap) const {
+    return searchPriorMap.count(obj) == 0 ? 0. : searchPriorMap.at(obj);
+  }
+
   int getChoice(const vector<unsigned int> &moveThreadCounts,
-                const vector<UtilityNode<T>> &nodes, int numTrials) {
+                const vector<UtilityNode<T>> &nodes,
+                const std::unordered_map<T, double> &searchPriorMap,
+                int numTrials) const {
     assert(nodes.size() > 0);
     float priorSum = 0.;
     for (unsigned int i = 0; i < nodes.size(); i++) {
-      priorSum += nodes[i].priorWeight;
+      priorSum += nodes[i].priorWeight +
+                  getSearchPrior(nodes[i].object, searchPriorMap);
     }
 
     float confidenceNumerator = log(numTrials + 1) * confidenceConstant;
@@ -41,7 +50,9 @@ class UCB1 : public MAB<T> {
       float uncertaintyScore =
           sqrt(confidenceNumerator / nodeTrials) -
           (moveThreadCounts[i] / threadDiversionDenominator);
-      float priorScore = priorNumerator / nodes[i].priorWeight;
+      float priorScore =
+          priorNumerator / (nodes[i].priorWeight +
+                            getSearchPrior(nodes[i].object, searchPriorMap));
       float nodeScore =
           nodes[i].getAverageUtility() + uncertaintyScore - priorScore;
       if (nodeScore > bestScore) {

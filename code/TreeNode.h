@@ -3,6 +3,7 @@
 
 #include <mutex>
 #include <tuple>
+#include <unordered_map>
 #include <vector>
 #include "Board.h"
 #include "MAB.h"
@@ -16,8 +17,9 @@ class TreeNode {
 
   ~TreeNode();
 
-  std::tuple<int, TreeNode *, bool> getAndMakeMove(MAB<Move> &mab,
-                                                   Board &board);
+  std::tuple<int, TreeNode *, bool> getAndMakeMove(
+      const MAB<Move> &mab, Board &board,
+      const std::unordered_map<Move, double> &searchPriorMap);
 
   void updateUtility(int moveIndex, float utility);
 
@@ -26,6 +28,8 @@ class TreeNode {
   bool isLeaf() const;
 
   size_t getNumMoves() const;
+
+  std::unordered_map<Move, double> getSearchPriorMap() const;
 
   int getCount() {
     int s = 0;

@@ -1,12 +1,12 @@
 #include "TreeNode.h"
 #include <assert.h>
+#include <algorithm>
 
 TreeNode::TreeNode(const Board &board, Player playerID, Player enemyID)
     : playerID(playerID), enemyID(enemyID), visits(0) {
   // std::vector<Move> moves = board.priorityOrderedMoves();
   std::vector<std::pair<Move, float>> moveAndWeights =
       board.getMovesAndWeights();
-  // std::vector<Move> moves = board.getMoves();
 
   for (const std::pair<Move, float> &moveWeight : moveAndWeights) {
     moveUtilities.push_back(
@@ -24,10 +24,12 @@ TreeNode::~TreeNode() {
   }
 }
 
-std::tuple<int, TreeNode *, bool> TreeNode::getAndMakeMove(MAB<Move> &mab,
-                                                           Board &board) {
+std::tuple<int, TreeNode *, bool> TreeNode::getAndMakeMove(
+    const MAB<Move> &mab, Board &board,
+    const std::unordered_map<Move, double> &searchPriorMap) {
   std::lock_guard<std::mutex> g(node_mtx);
-  int moveIndex = mab.getChoice(moveThreadCounts, moveUtilities, visits);
+  int moveIndex =
+      mab.getChoice(moveThreadCounts, moveUtilities, searchPriorMap, visits);
   moveThreadCounts[moveIndex] += 1;
   Move move = moveUtilities[moveIndex].object;
   board.makeMove(move, playerID);
@@ -40,6 +42,27 @@ std::tuple<int, TreeNode *, bool> TreeNode::getAndMakeMove(MAB<Move> &mab,
 
   return std::tuple<int, TreeNode *, bool>(moveIndex, children[moveIndex],
                                            isLeaf);
+}
+
+std::unordered_map<Move, double> TreeNode::getSearchPriorMap() const {
+  std::unordered_map<Move, double> search_prior_map;
+  double visit_min = std::numeric_limits<double>::max();
+  double visit_sum = 0.;
+
+  std::lock_guard<std::mutex> g(node_mtx);
+  for (const UtilityNode<Move> &moveUtility : moveUtilities) {
+    double visits = static_cast<double>(moveUtility.numTrials);
+    visit_min = std::min(visits, visit_min);
+    visit_sum += visits;
+  }
+
+  for (const UtilityNode<Move> &moveUtility : moveUtilities) {
+    double visits = static_cast<double>(moveUtility.numTrials);
+    double search_prior = visit_min * (visits / visit_sum);
+    search_prior_map.insert({moveUtility.object, search_prior});
+  }
+
+  return search_prior_map;
 }
 
 void TreeNode::updateUtility(int moveIndex, float utility) {

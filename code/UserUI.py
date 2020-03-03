@@ -2,7 +2,7 @@ import subprocess
 import time
 import sys
 
-SECONDS_PER_MOVE = 2
+SECONDS_PER_MOVE = 5
 THREADS = 12
 BOARD_SIZE = 9
 USER_VS_USER = False
@@ -41,6 +41,8 @@ def init(data):
     data.board = [['-'] * data.boardLen for _ in range(data.boardLen)]
     data.gameOver = False
     data.userWon = False
+    data.userStone = 'B'
+    data.opponentStone = 'W' if data.userStone == 'B' else 'B'
     data.turn = None
     data.waitingOnMove = False
     data.confidence = None
@@ -110,7 +112,7 @@ def parseBoard(data):
 
         line = cleanLine(data.process.stdout.readline())
 
-    opponent_stone = 'W' if data.turn is 'B' else 'W'
+    opponent_stone = 'W' if data.turn == 'B' else 'W'
     if len(board) == len(data.board):
         for row_idx in range(len(board)):
             for col_idx in range(len(board[row_idx])):

@@ -99,7 +99,9 @@ void *MCTS::getMoveHelper(void *arg) {
   for (int64_t currentTime = startTime; currentTime - startTime < msPerMove;
        currentTime = Tools::getTime()) {
     board->copyInto(copyBoard);
-    mcts->MCTSIteration(copyBoard, playerID, enemyID, *root, &groupInfo);
+    std::unordered_map<Move, double> emptySearchPrior;
+    mcts->MCTSIteration(copyBoard, playerID, enemyID, *root, &groupInfo,
+                        emptySearchPrior);
     iterations++;
   }
 
@@ -115,7 +117,8 @@ void *MCTS::getMoveHelper(void *arg) {
 
 // perform one iteration of the MCTS algorithm starting from the given node
 float MCTS::MCTSIteration(Board &board, Player playerID, Player enemyID,
-                          TreeNode &node, workerArg *groupInfo) {
+                          TreeNode &node, workerArg *groupInfo,
+                          std::unordered_map<Move, double> &searchPriorMap) {
   if (node.isLeaf()) {
     return performPlayouts(board, playerID, enemyID, groupInfo);
   }
@@ -124,12 +127,17 @@ float MCTS::MCTSIteration(Board &board, Player playerID, Player enemyID,
   TreeNode *child;
   bool childIsLeaf;
 
-  std::tie(moveIndex, child, childIsLeaf) = node.getAndMakeMove(*mab, board);
+  std::tie(moveIndex, child, childIsLeaf) =
+      node.getAndMakeMove(*mab, board, searchPriorMap);
+  if (searchPriorMap.size() == 0) {
+    searchPriorMap = node.getSearchPriorMap();
+  }
   float result;
   if (childIsLeaf) {
     result = performPlayouts(board, playerID, enemyID, groupInfo);
   } else {
-    result = 1. - MCTSIteration(board, enemyID, playerID, *child, groupInfo);
+    result = 1. - MCTSIteration(board, enemyID, playerID, *child, groupInfo,
+                                searchPriorMap);
   }
   node.updateUtility(moveIndex, result);
   return result;

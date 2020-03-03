@@ -26,7 +26,8 @@ class MCTS : public Strategy {
   // perform one iteration of the MCTS algorithm starting from the given node
   static void *getMoveHelper(void *arg);
   float MCTSIteration(Board &board, Player playerID, Player enemyID,
-                      TreeNode &node, workerArg *groupInfo);
+                      TreeNode &node, workerArg *groupInfo,
+                      std::unordered_map<Move, double> &searchPriorMap);
 
   // static void *MCTSIterationWorker(void *args);
   float performPlayouts(Board &board, Player playerID, Player enemyID,
