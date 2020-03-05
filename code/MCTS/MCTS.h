@@ -3,10 +3,10 @@
 
 #include <atomic>
 #include <random>
-#include "Board.h"
+#include "Board/Board.h"
+#include "Board/Move.h"
+#include "Game/Strategy.h"
 #include "MAB.h"
-#include "Move.h"
-#include "Strategy.h"
 #include "TreeNode.h"
 
 struct workerArg;

@@ -33,7 +33,7 @@ from tkinter import *
 modeFlag = '-v' if USER_VS_USER else '-u'
 
 def init(data):
-    data.process = subprocess.Popen(['./mcts', modeFlag, '-t', str(SECONDS_PER_MOVE), 
+    data.process = subprocess.Popen(['./bazel-bin/main/main', modeFlag, '-t', str(SECONDS_PER_MOVE), 
                                      '-i', str(THREADS), '-s', str(BOARD_SIZE)], 
                                      stdout=subprocess.PIPE, 
                                      stdin=subprocess.PIPE)

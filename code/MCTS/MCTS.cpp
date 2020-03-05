@@ -3,8 +3,8 @@
 #include <pthread.h>
 #include <chrono>
 #include <iostream>
-#include "Tools.h"
 #include "UCB1.h"
+#include "library/Tools.h"
 
 std::random_device MCTS::rd;
 std::mt19937 MCTS::rng(rd());

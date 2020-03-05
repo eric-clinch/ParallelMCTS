@@ -5,9 +5,9 @@
 #include <tuple>
 #include <unordered_map>
 #include <vector>
-#include "Board.h"
+#include "Board/Board.h"
+#include "Board/Move.h"
 #include "MAB.h"
-#include "Move.h"
 #include "TreeNode.h"
 #include "UtilityNode.h"
 

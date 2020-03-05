@@ -2,9 +2,9 @@
 #ifndef USERPLAYER_H__
 #define USERPLAYER_H__
 
-#include "Board.h"
-#include "Move.h"
-#include "Strategy.h"
+#include "Board/Board.h"
+#include "Board/Move.h"
+#include "Game/Strategy.h"
 
 class UserPlayer : public Strategy {
  public:

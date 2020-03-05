@@ -3,13 +3,13 @@
 #include <atomic>
 #include <cstring>
 #include <iostream>
-#include "Board.h"
-#include "BoardTest.h"
-#include "Game.h"
-#include "MCTS.h"
-#include "Move.h"
-#include "Strategy.h"
-#include "UserPlayer.h"
+#include "Board/Board.h"
+#include "Board/BoardTest.h"
+#include "Board/Move.h"
+#include "Game/Game.h"
+#include "Game/Strategy.h"
+#include "MCTS/MCTS.h"
+#include "UserPlayer/UserPlayer.h"
 
 // option parsing code taken from 418 course starter code
 static int _argc;

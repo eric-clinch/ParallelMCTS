@@ -1,13 +1,12 @@
 #ifndef GAME_h
 #define GAME_h
 
-#include <Board.h>
-#include <MCTS.h>
-#include <Strategy.h>
 #include <assert.h>
 #include <iostream>
 #include <random>
 #include <vector>
+#include "Board/Board.h"
+#include "Strategy.h"
 
 class Game {
  private:
