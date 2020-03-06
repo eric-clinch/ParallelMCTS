@@ -142,6 +142,30 @@ std::vector<Move> Board::getMoves() const {
   return result;
 }
 
+std::vector<std::pair<char, char>> Board::blackStones() const {
+  std::vector<std::pair<char, char>> stones;
+  for (int row = 0; row < height; row++) {
+    for (int col = 0; col < width; col++) {
+      if (board[row][col] == P0STONE) {
+        stones.push_back({row, col});
+      }
+    }
+  }
+  return stones;
+}
+
+std::vector<std::pair<char, char>> Board::whiteStones() const {
+  std::vector<std::pair<char, char>> stones;
+  for (int row = 0; row < height; row++) {
+    for (int col = 0; col < width; col++) {
+      if (board[row][col] == P1STONE) {
+        stones.push_back({row, col});
+      }
+    }
+  }
+  return stones;
+}
+
 void Board::getContestedTerritoryMoves(std::vector<Move> &result) {
   if (P0Stones == 0 || P1Stones == 0) {
     // this is a bit of a degenerate case. Just return all the legal moves

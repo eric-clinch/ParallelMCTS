@@ -52,6 +52,9 @@ class Board {
   std::string toString();
   void update(int i, int j, char stone);
 
+  std::vector<std::pair<char, char>> blackStones() const;
+  std::vector<std::pair<char, char>> whiteStones() const;
+
   friend class BoardTest;
 
  public:

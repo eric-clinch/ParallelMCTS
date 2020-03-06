@@ -22,6 +22,8 @@ class MCTS : public Strategy {
                              Player enemyID);
   virtual string toString();
 
+  double getConfidence() const;
+
  private:
   // perform one iteration of the MCTS algorithm starting from the given node
   static void *getMoveHelper(void *arg);
@@ -44,6 +46,7 @@ class MCTS : public Strategy {
   MAB<Move> *mab;
   double explorationConstant;
   double playoutPercent;
+  double confidence;
 
   static std::random_device rd;
   static std::mt19937 rng;

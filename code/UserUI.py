@@ -1,25 +1,11 @@
 import subprocess
 import time
 import sys
+from Board import Board
 
 SECONDS_PER_MOVE = 5
 THREADS = 12
 BOARD_SIZE = 9
-USER_VS_USER = False
-
-if (len(sys.argv) > 1):
-    SECONDS_PER_MOVE = int(sys.argv[1])
-if (len(sys.argv) > 2):
-    THREADS = int(sys.argv[2])
-if (len(sys.argv) > 3):
-    BOARD_SIZE = int(sys.argv[3])
-if (len(sys.argv) > 4):
-    USER_VS_USER = True
-
-def cleanLine(line):
-    line = str(line)
-    line = line[2:-3] # strip irrelevant characters
-    return line.strip()
 
 #taken from http://www.cs.cmu.edu/~112/notes/notes-graphics.html
 def rgbString(red, green, blue):
@@ -30,21 +16,12 @@ def rgbString(red, green, blue):
 
 from tkinter import *
 
-modeFlag = '-v' if USER_VS_USER else '-u'
-
 def init(data):
-    data.process = subprocess.Popen(['./bazel-bin/main/main', modeFlag, '-t', str(SECONDS_PER_MOVE), 
-                                     '-i', str(THREADS), '-s', str(BOARD_SIZE)], 
-                                     stdout=subprocess.PIPE, 
-                                     stdin=subprocess.PIPE)
-    data.boardLen = 19
-    data.board = [['-'] * data.boardLen for _ in range(data.boardLen)]
+    data.board = Board(BOARD_SIZE)
+    data.boardLen = BOARD_SIZE
     data.gameOver = False
     data.userWon = False
-    data.userStone = 'B'
-    data.opponentStone = 'W' if data.userStone == 'B' else 'B'
-    data.turn = None
-    data.waitingOnMove = False
+    data.userPlayers = [0]
     data.confidence = None
 
     data.backgroundColor = rgbString(219, 190, 122)
@@ -54,11 +31,6 @@ def init(data):
     data.cellHeight = (data.height - data.botMargin - 2 * data.margin) / data.boardLen
     data.circleMargin = 2
 
-    data.BTerritory = 0
-    data.BCaptures = 0
-    data.WTerritory = 0
-    data.WCaptures = 0
-
     # Where the most recent stone was placed
     data.placedRow = None
     data.placedCol = None
@@ -67,17 +39,15 @@ def init(data):
     data.passButtonWidth = 40
 
 def mousePressed(event, data):
-    if not data.waitingOnMove:
+    if data.board.current_player not in data.userPlayers:
         return
     row = int((event.y - data.margin) // data.cellHeight)
     col = int((event.x - data.margin) // data.cellWidth)
     if (0 <= row < data.boardLen and 0 <= col < data.boardLen):
-        data.placedRow = row
-        data.placedCol = col
-        message = "%d %d\n" % (row, col)
-        data.process.stdin.write(message.encode())
-        data.process.stdin.flush()
-        data.waitingOnMove = False
+        if data.board.LegalMove(row, col):
+            data.placedRow = row
+            data.placedCol = col
+            data.board.MakeMove(row, col)
 
 def keyPressed(event, data):
     # use event.char and event.keysym
@@ -85,105 +55,16 @@ def keyPressed(event, data):
 
 def makePassMove(data):
     if data.waitingOnMove and not data.gameOver:
-        message = "%d %d\n" % (-1, -1)
-        data.process.stdin.write(message.encode())
-        data.process.stdin.flush()
+        data.board.MakeMove(-1, -1)
         data.waitingOnMove = False
 
-def parseTurn(data, line):
-    data.turn = line[0]
-    assert(data.turn == 'B' or data.turn == 'W')
-
-def parseConfidence(data, line):
-    data.confidence = float(line.split(" ")[-1])
-
-def parseBoard(data):
-    if data.waitingOnMove:
-        data.placedRow = None
-        data.placedCol = None
-
-    # parse board
-    board = []
-    line = cleanLine(data.process.stdout.readline())
-    while(',' not in line):
-        row = line.split(' ')
-        assert(len(board) == 0 or len(row) == len(board[0]))
-        board.append(row)
-
-        line = cleanLine(data.process.stdout.readline())
-
-    opponent_stone = 'W' if data.turn == 'B' else 'W'
-    if len(board) == len(data.board):
-        for row_idx in range(len(board)):
-            for col_idx in range(len(board[row_idx])):
-                if (data.board[row_idx][col_idx] == '-' and 
-                            board[row_idx][col_idx] == opponent_stone):
-                    data.placedRow = row_idx
-                    data.placedCol = col_idx
-
-
-    data.board = board
-    assert(len(data.board) == len(data.board[0])) # the board should be square
-    data.boardLen = len(board)
-    data.cellWidth = (data.width - 2 * data.margin) / data.boardLen
-    data.cellHeight = (data.height - data.botMargin - 2 * data.margin) / data.boardLen
-
-    # parse territory
-    lineParts = line.split(",")
-    words = lineParts[0].split(" ")
-    data.BTerritory = int(words[-1])
-    words = lineParts[1].split(" ")
-    data.WTerritory = int(words[-1])
-
-    # parse captures
-    line = cleanLine(data.process.stdout.readline())
-    lineParts = line.split(",")
-    words = lineParts[0].split(" ")
-    data.BCaptures = int(words[-1])
-    words = lineParts[1].split(" ")
-    data.WCaptures = int(words[-1])
-
-    line = ""
-    while('END BOARD' not in line):
-        line = cleanLine(data.process.stdout.readline())
-
 def timerFired(data):
-    if data.waitingOnMove:
-        return
-    startTime = time.time()
-    while(time.time() - startTime < .1 and not data.gameOver): # listen for .1 second
-        result = data.process.poll()
-        if result is not None: # the process has terminated
-            data.gameOver = True
-            break
-        line = cleanLine(data.process.stdout.readline())
-
-        if '\'s move' in line:
-            parseTurn(data, line)
-            break
-        elif 'confidence' in line:
-            parseConfidence(data, line)
-            break
-        elif 'BOARD' in line:
-            parseBoard(data)
-            break
-        elif 'Move (row col)' in line:
-            data.waitingOnMove = True
-            break
-        elif '******' in line:
-            data.waitingOnMove = False
-            break
-        elif "USER LOST" in line:
-            data.gameOver = True
-            data.userWon = False
-            break
-        elif "conceding" in line:
-            data.gameOver = True
-            data.userWon = True
-            break
-        else:
-            print(line)
-            break
+    if data.board.current_player not in data.userPlayers:
+        mcts_move = data.board.GetMCTSMove(THREADS, SECONDS_PER_MOVE)
+        data.board.MakeMove(mcts_move.row, mcts_move.col)
+        data.placedRow = mcts_move.row
+        data.placedCol = mcts_move.col
+        data.confidence = mcts_move.confidence
 
 def redrawAll(canvas, data):
     canvas.create_rectangle(0, 0, data.width, data.height,
@@ -191,6 +72,7 @@ def redrawAll(canvas, data):
 
     top = data.margin
     bot = top + data.cellHeight
+    board = data.board.BoardList()
     for row in range(data.boardLen):
         for col in range(data.boardLen):
             left = data.margin + data.cellWidth * col
@@ -199,11 +81,11 @@ def redrawAll(canvas, data):
                 canvas.create_rectangle(left + data.cellWidth / 2, 
                     top + data.cellHeight / 2, right + data.cellWidth / 2, 
                     bot + data.cellHeight / 2)
-            if data.board[row][col] != '-':
+            if board[row][col] != '-':
                 color = 'red'
-                if data.board[row][col] == 'B':
+                if board[row][col] == 'B':
                     color = 'black'
-                if data.board[row][col] == 'W':
+                if board[row][col] == 'W':
                     color = 'white'
                 outline = 'black'
                 width = 1
@@ -221,23 +103,18 @@ def redrawAll(canvas, data):
                        text = "AI confidence: %.2f" % (data.confidence), anchor=W)
 
     canvas.create_text(data.margin, data.height - (data.margin + data.botMargin) / 3, 
-                       text = "W territory: %d" % data.WTerritory, anchor=SW)
+                       text = "White score: %d" % data.board.GetPlayerScore(1), anchor=SW)
     canvas.create_text(data.width / 2, data.height - (data.margin + data.botMargin) / 3, 
-                       text = "B territory: %d" % data.BTerritory, anchor=SW)
-    canvas.create_text(data.margin, data.height - 2 * (data.margin + data.botMargin) / 3, 
-                       text = "W captures: %d" % data.WCaptures, anchor=SW)
-    canvas.create_text(data.width / 2, data.height - 2 * (data.margin + data.botMargin) / 3, 
-                       text = "B captures: %d" % data.BCaptures, anchor=SW)
-
+                       text = "B score: %d" % data.board.GetPlayerScore(0), anchor=SW)
     canvas.create_window(data.width - data.margin, data.margin / 2,
                 width = data.passButtonWidth, window = data.passButton, anchor=NE)
 
     if data.gameOver:
         message = "YOU WON" if data.userWon else "YOU LOST"
         canvas.create_text(data.width / 2, data.margin / 2, text=message)
-    elif data.waitingOnMove:
+    elif data.board.current_player in data.userPlayers:
         canvas.create_text(data.width / 2, data.margin / 3, text="Your Turn")
-        if data.turn == 'B':
+        if data.board.current_player == 0:
             color = 'black'
         else:
             color = 'white'
@@ -296,4 +173,6 @@ def run(width=300, height=300):
     root.mainloop()  # blocks until window is closed
     print("bye!")
 
-run(800, 800)
+if __name__ == "__main__":
+
+    run(800, 800)
